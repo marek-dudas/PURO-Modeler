@@ -19,6 +19,9 @@
 	    <script src="purostrings.js"></script>
 	    <script src="settings.js"></script>
         <script src="puromodel.js"></script>
+        <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+        <script src="jquery.rdfquery.core-1.0.js"></script>
+        <script src="puroserializer.js"></script>
         <script src="puroloader.js"></script>
 	    <script src="purocontroller.js"></script>
 	  	<script src="puroview.js"></script>
@@ -153,16 +156,18 @@
     	
         <div style="margin:30px; width:1450px;" >
 	        <div style="float:left; width:330px" >
-	        	<div style="font: 36px Helvetica Neue, Helvetica, Arial, sans-serif; color:#a6a6a6;">PURO Modeler</div>
+	        	<div style="font: 36px Helvetica Neue, Helvetica, Arial, sans-serif; color:#B60000;">PURO Modeler</div>
+            <div style="font: Helvetica Neue, Helvetica, Arial, sans-serif;"><a href="about.html">About this app</a> <a href="help.html" target="_blank">Help</a></div>
 	        	<br/>
 	        	<div style="display:inline " class="toolheading">Model: </div><div style="display:inline" id="modelname" class="toolheading"> </div>
 	        	<br/>
 	        	<table >
 	        		<tr>
-	        			<td><input type="button" value="New" id="btnNew" class="button"></td>
-	        			<td><input type="button" value="Save" id="btnSave" class="button"></td>
-	        			<td><input type="button" value="Save as..." id="btnSaveAs" class="button"></td>
-	        			<td><a href="#loadlist" class="button">Load</a></td>
+	        			<td><input type="button" value="New" id="btnNew" class="button" title="Start from scratch"></td>
+	        			<td><input type="button" value="Save" id="btnSave" class="button" title="Save model to DB"></td>
+	        			<td><input type="button" value="Save as..." id="btnSaveAs" class="button" title="Save model under new name"></td>
+	        			<td><a href="#loadlist" class="button" title="Load an existing model.">Load</a></td>
+	        			<td><input type="button" value="Create OWL" id="btnTransform" class="button" title="Generates OWL representations of the OBM."></td>
 	        		</tr>
 	        	</table>
 	        	<div style="height:450px" id="tools"  class="roundbox"></div>

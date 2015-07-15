@@ -100,6 +100,7 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 	d3.select("#btnNew").on("click", function(){puroControl.newModel();});
 	d3.select("#btnSave").on("click", function(){puroControl.saveModel();});
 	d3.select("#btnSaveAs").on("click", function(){puroControl.saveModelAs();});
+	d3.select("#btnTransform").on("click", function(){puroControl.transformModel();});
 	
 	//var view = this;
 	//d3.select("#btnP").on("click", function(){view.drawVocabPaths();});
@@ -380,11 +381,11 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 		.attr("width", 300)
 		.attr("height", 500);
 	
-	addButton = function(label, width, height, x, y, pathFunction, onClickFunction) {
+	addButton = function(label, width, height, x, y, pathFunction, onClickFunction, specialColor) {
 		var gButton = toolSvg.append("g").classed("node",true);
 		
-		gButton.append("path").attr("d", pathFunction.apply(null, [width,height]));
-				//.style("fill", "#88f");
+		var button = gButton.append("path").attr("d", pathFunction.apply(null, [width,height]));
+				if(specialColor != null) button.style("fill", specialColor);
 		gButton.append("text").text(label)
 			.attr("text-anchor", "middle")
 			.attr("x", "0") //width/2+5)
@@ -407,7 +408,7 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	
 	
 	addButton("Move/Rename", 150, 50, 210, 350, BTypePath, function(){
-			puroControl.setTool(puroControl.TOOL.select);});
+			puroControl.setTool(puroControl.TOOL.select);}, "#7dd");
 	addButton("<- Link ->", 110, 20, 210, 110, BTypePath, function(){
 			puroControl.setTool(puroControl.TOOL.link);});
 	addButton("<- instanceOf-Link ->", 170, 30, 210, 50, BTypePath, function(){
@@ -423,7 +424,7 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	addButton("BValuation", 120, 30, 70, 290, BValuationPath, function(){
 			puroControl.setTool(puroControl.TOOL.createBValuation);});
 	addButton("Delete", 80, 30, 80, 400, BValuationPath, function(){
-			puroControl.setTool(puroControl.TOOL.del);});
+			puroControl.setTool(puroControl.TOOL.del);}, "#f77");
 };
 
 function BTypePath(width, height) {

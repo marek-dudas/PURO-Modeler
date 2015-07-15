@@ -78,7 +78,7 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 			if(this.linkStart != null  && node!=null) {
 				this.selectNode(null);
 				if(this.activeTool == this.TOOL.link) {
-					this.model.addLink(new BLink("new link",this.linkStart, node));
+					this.model.addLink(new BLink("",this.linkStart, node));
 				}
 				if(this.activeTool == this.TOOL.instanceOfLink) {
 					var link = new InstanceOfLink("new link",this.linkStart, node);
@@ -143,10 +143,20 @@ PuroController.prototype.selectNode = function(node, noDeselectFirst) {
 };
 
 PuroController.prototype.nodeDblClick = function(node) {
+		do {
+		var unique = false;
 		var result = prompt('Change the name of the entity',node.name);
-			    if(result) {
+		var validRename = false;
+		if(result)
+			{
+				unique = !this.model.labelExists(result);
+			    if(node.isValidLabel(result, unique)) {
 			      node.name = result;
-			      this.view.updateView();}
+			      this.view.updateView();
+			      validRename = true;}
+			    else alert('The name must be unique.');
+			}
+		} while(result && !validRename)
 };
 PuroController.prototype.loadModel = function(id) {
 	 this.store.getOBMbyId(id, this);
@@ -209,6 +219,10 @@ PuroController.prototype.saveModelAs = function() {
 	this.model.oldId = null;
 	this.store.saveModel(this.model);
 };
+
+PuroController.prototype.transformModel = function() {
+	PuroRdfSerializer.serialize(this.model);
+}
 
 PuroController.prototype.newVocab = function() {
 	var result = prompt('Enter the URI of the vocabulary or ontology',"");

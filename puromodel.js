@@ -8,22 +8,26 @@ function BTerm(name) {
 function BType(name) {
 	BTerm.call(this,name);
 	this.type=purostr.Btype; //"B-type";
+	this.puroTerm = puroOntology.Btype;
 	this.level=1;
 }
 
 function BObject(name) {
 	BTerm.call(this,name);
 	this.type=purostr.Bobject; //"B-object";
+	this.puroTerm = puroOntology.Bobject;
 }
 
 function BValuation(name) {
 	BTerm.call(this,name);
 	this.type=purostr.Bvaluation; //"B-valuation";
+	this.puroTerm = puroOntology.Bvaluation;
 }
 
 function BRelation(name) {
 	BTerm.call(this,name);
 	this.type=purostr.Brelation; //"B-relation";
+	this.puroTerm = puroOntology.Brelation;
 }
 
 BType.prototype = Object.create(BTerm.prototype);
@@ -40,9 +44,31 @@ BTerm.prototype.getType = function() {
 	return this.type;
 };
 
+BTerm.prototype.getPuroTerm = function() {
+	return this.puroTerm;
+};
+
 BTerm.prototype.incLevel = function() {
 	alert(purostr.invalidIncrement);
 };
+
+BTerm.prototype.getRdfName = function() {
+	var rdfName = this.name.replace(/ /g, "_");
+	return rdfName;
+};
+
+BTerm.prototype.getCURI = function() {
+	return "pm:"+this.getRdfName();
+};
+
+BTerm.prototype.isValidLabel = function(label, unique) {
+	if(label && unique) return true;
+	else return false;
+}
+
+/*BRelation.prototype.getCURI = function() {
+	
+};*/
 
 BTerm.prototype.hasVocab = function(vocab) {
 	for(var i=0; i<this.inVocabs.length; i++){
@@ -73,6 +99,7 @@ BType.prototype.getType = function() {
 };
 
 function BLink(name, start, end) {
+	this.type = purostr.link;
 	this.name = name;
 	this.start = start;
 	this.end = end;
@@ -82,6 +109,28 @@ function BLink(name, start, end) {
 	this.left = false;
 	this.id = -1;
 } 
+
+BLink.prototype.isValidLabel = function(label, unique) {
+	return true;
+}
+
+BLink.prototype.getTrimmedName = function() {
+	var name = this.name.replace(/ /g, "_");
+	if(name == "_") name = "";
+	return name;
+};
+
+BLink.prototype.getRdfName = function() {
+	if(this.getTrimmedName()=="") return "";
+	else {
+		var rdfName = this.start.getRdfName() + "_" + this.getTrimmedName()+ "_" + this.end.getRdfName();
+		return rdfName;
+	}	
+};
+
+BLink.prototype.getCURI = function() {
+	return "pm:"+this.getRdfName();
+};
 
 BLink.prototype.connectedTo = function(node) {
 	if(this.start==node || this.end == node) return true;
@@ -285,5 +334,14 @@ PuroModel.prototype.updateBLevelsFrom = function(node) {
 		}
 };
 
-
+PuroModel.prototype.labelExists = function(label) {
+	var exists = false;
+	for(var i=0; i<this.nodes.length; i++) {
+		if(this.nodes[i].name == label) {
+			exists = true;
+			break;
+		}
+	}
+	return exists;
+}
 
