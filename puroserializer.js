@@ -1,15 +1,15 @@
 BTerm.prototype.rdfDefine = function() {
-	PuroRdfSerializer.defineBElement(this.getPuroTerm(), this.getRdfName(), this.getCURI())
+	PuroRdfSerializer.defineBElement(this.getPuroTerm(), this.getRdfName(), this.getCURI(), this);
 };
 
 BLink.prototype.rdfDefine = function() {
-	if(this.getRdfName() != "" && !(this.end instanceof BValuation))
+	if(this.getRdfName() != "" && !(this.end instanceof BValuation) && !(this.end.getType() == "mapping"))
 		PuroRdfSerializer.defineBElement(puroOntology.link, this.getTrimmedName(), this.getCURI());
 	else if( this.end instanceof BValuation ) { //special treatment of attribute->valuation links
 		var attributeUri = "pm:"+this.getTrimmedName();
 		PuroRdfSerializer.defineBElement(puroOntology.Battribute, this.getTrimmedName(), attributeUri);
 		var valuationUri = "pm:"+this.getTrimmedName()+"_"+this.end.getRdfName();
-		PuroRdfSerializer.defineBElement(puroOntology.Bvaluation, this.getTrimmedName()+"_"+this.end.getRdfName(), valuationUri);
+		PuroRdfSerializer.defineBElement(puroOntology.Bvaluation, this.getTrimmedName()+"_"+this.end.getRdfName(), valuationUri, this.end);
 		PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:linkedTo", valuationUri);
 		PuroRdfSerializer.addTriple(valuationUri, "puro:linkedTo", attributeUri);
 	}
@@ -28,6 +28,9 @@ BLink.prototype.rdfLink = function() {
 	if(! (this.end instanceof BValuation))	{
 		if(this.getTrimmedName()=="") 
 			PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:linkedTo",this.end.getCURI());
+		else if(this.end.getType() == "mapping") {
+			PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:mappedTo", this.end.getURI());
+		}
 		else {
 			PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:linkedTo", this.getCURI());
 			PuroRdfSerializer.addTriple(this.getCURI(), "puro:linkedTo", this.end.getCURI());
@@ -68,20 +71,25 @@ PuroRdfSerializer.createResource = function(r) {
 	});
 };
 
-PuroRdfSerializer.defineBElement = function(elementType, elementName, elementCuri) {
-/*this.addTriple(PuroRdfSerializer.createResource(elementCuri),
-		PuroRdfSerializer.createResource('rdf:type'),
-		PuroRdfSerializer.createResource('puro:'+elementType));
-this.addTriple(PuroRdfSerializer.createResource(elementCuri),
-		PuroRdfSerializer.createResource('rdfs:label'),
-		$.rdf.literal('"'+elementName+'"'));*/
-
-this.addTriple(elementCuri,
-		'rdf:type',
-		'puro:'+elementType);
-this.addTriple(elementCuri,
-		'rdfs:label',
-		'"'+elementName+'"');
+PuroRdfSerializer.defineBElement = function(elementType, elementName, elementCuri, bElement) {
+	/*this.addTriple(PuroRdfSerializer.createResource(elementCuri),
+			PuroRdfSerializer.createResource('rdf:type'),
+			PuroRdfSerializer.createResource('puro:'+elementType));
+	this.addTriple(PuroRdfSerializer.createResource(elementCuri),
+			PuroRdfSerializer.createResource('rdfs:label'),
+			$.rdf.literal('"'+elementName+'"'));*/
+	
+	this.addTriple(elementCuri,
+			'rdf:type',
+			'puro:'+elementType);
+	this.addTriple(elementCuri,
+			'rdfs:label',
+			'"'+elementName+'"');
+	
+	if(bElement!=null) {
+		this.addTriple(elementCuri, 'puro:modelingStyle', 'puro:'+bElement.modelingStyle.name);
+		this.addTriple(elementCuri, 'puro:rigid', '"'+(!bElement.fluent)+'"');
+	}
 };
 
 //PuroRdfSerializer.data = {}; //TBD
@@ -107,16 +115,45 @@ PuroRdfSerializer.upload = function(targetWindow) {
 		  });
 };
 
+
 PuroRdfSerializer.serialize = function(model) {
+for(var i=0; i<model.nodes.length; i++)
+	if(!(model.nodes[i] instanceof BValuation || model.nodes[i].getType()=="mapping")) model.nodes[i].rdfDefine();
+for(var i=0; i<model.links.length; i++)
+	model.links[i].rdfDefine();
+for(var i=0; i<model.links.length; i++)
+	model.links[i].rdfLink();
+}
+
+PuroRdfSerializer.getOFMVisualizationUrl = function(model, callback) {
+	this.initData();
+	this.serialize(model);
+	var dataDOM = this.data.dump({format:'application/rdf+xml'});
+	var dataString = (new XMLSerializer()).serializeToString(dataDOM);
+	$.post(
+			obowlmorphServerUrl, //http://localhost/PUROM-server/
+		  dataString
+		) 
+		.done(callback);
+}
+
+PuroRdfSerializer.getMappings = function(model, callback) {
+	this.initData();
+	this.serialize(model);
+	var dataDOM = this.data.dump({format:'application/rdf+xml'});
+	var dataString = (new XMLSerializer()).serializeToString(dataDOM);
+	$.post(
+			mappingServerUrl, //http://localhost/PUROM-server/
+		  dataString
+		) 
+		.done(callback);
+};
+
+PuroRdfSerializer.transformToVariants = function(model) {
 	var win = window.open("", "_blank", "scrollbars=yes, width=900, height=800");
 	this.initData();
 	
-	for(var i=0; i<model.nodes.length; i++)
-		model.nodes[i].rdfDefine();
-	for(var i=0; i<model.links.length; i++)
-		model.links[i].rdfDefine();
-	for(var i=0; i<model.links.length; i++)
-		model.links[i].rdfLink();	
+	this.serialize(model);	
 	
 	this.upload(win);
 	

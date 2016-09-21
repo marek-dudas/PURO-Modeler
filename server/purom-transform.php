@@ -56,9 +56,7 @@ a:hover
 		<br>
 <?php
 	
-	$debug = false;
-	$webUrl = "http://lod2-dev.vse.cz/puromodeler/server/";
-	$vowlUrl = "http://vowl.visualdataweb.org/webvowl/index.html#iri=";
+	include 'settings.php'
 	
 	function getGraphs($str) {
 		$graphs = array();
@@ -87,8 +85,8 @@ a:hover
 	//debug save puromodel at protegeserver
 	if($debug)
 	{
-		//echo "copying the model to protegeserver <br>";
-		$webUrl = "http://lod2-dev.vse.cz/puromodeler/patterns/";
+		echo "copying the model to protegeserver <br>";
+		$webUrl = "http://protegeserver.cz/puromodeler/patterntest/";//"http://lod2-dev.vse.cz/puromodeler/patterns/";
 		$debug_save_url = "http://192.168.1.2/puromodeler/patterntest/savetempmodel.php";
 		$ch = curl_init();   
 	    curl_setopt($ch,CURLOPT_URL,$debug_save_url);
@@ -97,7 +95,7 @@ a:hover
 	    curl_setopt($ch, CURLOPT_POST, 2);
 	    curl_setopt($ch, CURLOPT_POSTFIELDS, "filename=$purom_filename&graph_data=$rdfInput");     
 	    $output=curl_exec($ch); 
-	    //echo "protegeserver answer: $output";
+	    echo "protegeserver answer: $output";
 	    curl_close($ch);
 	}
     

@@ -1,0 +1,70 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX puro: <http://lod2-dev.vse.cz/ontology/puro#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+INSERT
+{                
+  GRAPH <http://owlfragmentA> {
+    ?d puro:transformedTo ?domainClass .
+    ?r puro:transformedTo ?propertyValueClass .
+    ?p puro:transformedTo ?propertyValueClass .
+      
+    ?propertyValueClass a owl:Class;
+    	rdfs:subClassOf ?domainClass.
+  }  
+}
+WHERE
+{ 
+  ?d a puro:BType;
+   rdfs:label ?d_label .
+  ?a puro:instanceOf ?d;
+    puro:linkedTo ?p .
+  ?p a puro:BRelation;
+    rdfs:label ?p_label;
+    puro:linkedTo ?b .
+  ?b puro:instanceOf ?r ;
+  	rdfs:label ?b_label .
+  ?r a puro:BType;
+   rdfs:label ?r_label .   
+   
+   FILTER ( EXISTS {?p puro:modelingStyle puro:classMembership})     
+   
+  OPTIONAL { 
+    ?r puro:subTypeOf ?r_uptype1 . ?r_uptype1 rdfs:label ?r_uptype1_label . 
+    OPTIONAL { ?r_uptype1 puro:subTypeOf ?r_uptype2 . ?r_uptype2 rdfs:label ?r_uptype2_label . }
+  } 
+  
+  BIND(IF(BOUND(?r_uptype2), ?r_uptype2_label, IF(BOUND(?r_uptype1), ?r_uptype1_label, ?r_label)) AS ?r_label_upmost )
+  
+  OPTIONAL { 
+    ?d puro:subTypeOf ?d_uptype1 . ?d_uptype1 rdfs:label ?d_uptype1_label . 
+    OPTIONAL {?d_uptype1 puro:mappedTo ?d_mappingL2 .}   
+    OPTIONAL { ?d_uptype1 puro:subTypeOf ?d_uptype2 . ?d_uptype2 rdfs:label ?d_uptype2_label .
+    	OPTIONAL {?d_uptype2 puro:mappedTo ?d_mappingL3 .}
+    }  
+  } 
+  
+  BIND(IF(BOUND(?d_uptype2), ?d_uptype2_label, IF(BOUND(?d_uptype1), ?d_uptype1_label, ?d_label)) AS ?d_label_upmost )
+  
+  OPTIONAL {?d puro:mappedTo ?d_mapping .}
+  
+  BIND(URI(CONCAT("http://owlfragment/entity/",?p_label, "_", ?b_label)) AS ?propertyValueClass)
+  
+  BIND(COALESCE(?d_mapping, URI(CONCAT("http://owlfragment/entity/", ?d_label_upmost))) AS ?domainClass )
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?p_label)) AS ?property )
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?r_label_upmost)) AS ?rangeClass )  
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?p_label, "_", LCASE(SUBSTR(?r_label_upmost,1,1)), SUBSTR(?r_label_upmost,2) )) AS ?rangeProperty ) 
+  BIND(URI(CONCAT("http://owlfragment/entity/", LCASE(SUBSTR(?d_label_upmost,1,1)), SUBSTR(?d_label_upmost,2), "_", ?p_label )) AS ?domainProperty ) 
+  BIND(URI(CONCAT("http://owlfragment/entity/", UCASE(SUBSTR(?p_label,1,1)), SUBSTR(?p_label,2), "_Relation" )) AS ?propertyClass ) 
+   FILTER NOT EXISTS {
+      GRAPH ?any {?p puro:transformedTo [] .}      
+   }
+   FILTER NOT EXISTS {
+      GRAPH ?any {?p puro:linkedTo [ a puro:Link ] .}      
+   }
+   FILTER NOT EXISTS {
+      GRAPH ?any {[ a puro:Link ] puro:linkedTo ?p .}      
+   }
+}

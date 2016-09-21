@@ -1,0 +1,42 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX puro: <http://lod2-dev.vse.cz/ontology/puro#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+INSERT
+{                          
+  GRAPH <http://owlfragmentA> {
+     ?item puro:transformedTo ?itemClass .
+    ?p_type puro:transformedTo ?p_typeClass .
+    ?prod puro:transformedTo ?p_typeClass .
+    ?phys_object puro:transformedTo ?p_typeClass .  
+    ?itemClass a owl:Class .
+     ?p_typeClass a owl:Class .
+     ?manifestProp a owl:ObjectProperty;
+      rdfs:range ?itemClass;
+      rdfs:domain ?p_typeClass;
+  }     
+}
+WHERE
+{ 
+  ?p_type a puro:BType;
+   rdfs:label ?ptype_label .
+  ?prod a puro:BType;
+    rdfs:label ?prod_label;
+    puro:instanceOf ?p_type .
+  ?phys_object a puro:BObject;
+    puro:instanceOf ?prod ;
+    puro:instanceOf ?item .
+  ?item a puro:BType; 
+   rdfs:label ?item_label .     
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?item_label)) AS ?itemClass )
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?ptype_label)) AS ?p_typeClass )
+  BIND(URI("http://owlfragment/entity/hasManifestation") AS ?manifestProp )
+   FILTER NOT EXISTS {
+      ?item puro:transformedTo [] . 
+   }
+   FILTER NOT EXISTS {
+      ?item puro:instanceOf ?p_type .      
+   }
+}

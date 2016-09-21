@@ -1,0 +1,50 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX puro: <http://lod2-dev.vse.cz/ontology/puro#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+INSERT
+{     
+  GRAPH <http://owlfragmentA> {  
+  }
+  GRAPH <http://owlfragmentB> {  
+    ?d puro:transformedTo ?upperClass .
+    ?s puro:transformedTo ?subClass . 
+     ?upperClass a owl:Class .
+     ?subClass a ?typeClass .
+     ?typeClass a owl:Class .
+     ?typeProperty a owl:ObjectProperty;
+        rdfs:domain ?upperClass;
+        rdfs:range ?typeClass .
+  }
+  GRAPH <http://owlfragmentC> {  
+    ?d puro:transformedTo ?upperClass .
+    ?s puro:transformedTo ?subClass . 
+     ?upperClass a owl:Class .
+     ?subClass a owl:Class ;
+        rdfs:subClassOf ?upperClass .
+  }    
+  GRAPH <http://owlfragmentD> {  
+    ?d puro:transformedTo ?upperClass .
+    ?s puro:transformedTo ?subClass . 
+     ?upperClass a owl:Class .
+     ?subClass a owl:Class ;
+        rdfs:subClassOf ?upperClass .
+  }
+}
+WHERE
+{ 
+  ?d a puro:BType;
+   rdfs:label ?d_label .
+  ?s a puro:BType;
+   rdfs:label ?s_label;
+   puro:subTypeOf ?d .     
+    BIND(URI(CONCAT("http://owlfragment/entity/", ?d_label)) AS ?upperClass )
+    BIND(URI(CONCAT("http://owlfragment/entity/", ?s_label)) AS ?subClass )  
+    BIND(URI(CONCAT("http://owlfragment/entity/", ?d_label, "_type")) AS ?typeClass ) 
+    BIND(URI(CONCAT("http://owlfragment/entity/", LCASE(SUBSTR(?d_label,1,1)), SUBSTR(?d_label,2), "_hasType")) AS ?typeProperty )  
+   
+   FILTER NOT EXISTS {
+      GRAPH ?any {?d puro:transformedTo [] .}     
+   }
+}

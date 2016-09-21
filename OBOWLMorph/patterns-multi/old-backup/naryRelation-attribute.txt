@@ -1,0 +1,81 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX puro: <http://lod2-dev.vse.cz/ontology/puro#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+INSERT
+{ 
+  
+  GRAPH <http://owlfragmentA> {
+    ?domainSpecifier puro:transformedTo ?domainClass .
+    ?val puro:transformedTo ?property .
+    ?attr puro:transformedTo ?property .
+    
+  
+     ?domainClass a owl:Class .
+     ?property a owl:DatatypeProperty;
+      rdfs:domain ?domainClass .
+  }         
+  GRAPH <http://owlfragmentB> {
+    ?domainSpecifier puro:transformedTo ?domainClass .
+    ?val puro:transformedTo ?rangeClass .
+    ?attr puro:transformedTo ?property .
+    
+  
+     ?domainClass a owl:Class .
+     ?rangeClass a owl:Class .
+     ?property a owl:ObjectProperty;
+      rdfs:range ?rangeClass;
+      rdfs:domain ?domainClass .
+     ?valProp a owl:DatatypeProperty .
+  }                
+  GRAPH <http://owlfragmentC> {
+    ?domainSpecifier puro:transformedTo ?domainClass .
+    ?val puro:transformedTo ?rangeClass .
+    ?attr puro:transformedTo ?property .
+    
+  
+     ?domainClass a owl:Class .
+     ?rangeClass a owl:Class .
+     ?property a owl:ObjectProperty;
+      rdfs:range ?rangeClass;
+      rdfs:domain ?domainClass .
+     ?valProp a owl:DatatypeProperty .
+  }                    
+  GRAPH <http://owlfragmentD> {
+    ?domainSpecifier puro:transformedTo ?domainClass .
+    ?val puro:transformedTo ?property .
+    ?attr puro:transformedTo ?property .
+    
+  
+     ?domainClass a owl:Class .
+     ?property a owl:DatatypeProperty;
+      rdfs:domain ?domainClass .
+  } 
+}
+WHERE
+{ 
+  ?d puro:linkedTo ?val .
+  ?attr a puro:BAttribute;
+    rdfs:label ?attr_label.
+  ?val puro:linkedTo ?attr .  
+  OPTIONAL 
+  {
+    ?d puro:instanceOf ?type .
+    ?type rdfs:label ?type_label .
+  }  
+  OPTIONAL
+  {
+    ?d a puro:BRelation;
+      rdfs:label ?d_label.
+  }
+  BIND(COALESCE(?type, ?d) AS ?domainSpecifier)
+  BIND(COALESCE(URI(CONCAT("http://owlfragment/entity/", ?d_label)), URI(CONCAT("http://owlfragment/entity/", ?type_label)), owl:Thing) AS ?domainClass )
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?attr_label)) AS ?property )
+  BIND(URI("http://owlfragment/entity/hasValue") AS ?valProp ) 
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?attr_label, "Value")) AS ?rangeClass ) 
+   FILTER NOT EXISTS {
+      GRAPH ?any {?val puro:transformedTo [] .  }    
+   }
+}

@@ -1,8 +1,54 @@
+function ModelingStyle(id, name, label) {
+	this.id = id;
+	this.name = name;
+	this.label = label;
+	this.checked = false;
+}
+
+var ModelingStyles = [
+		new ModelingStyle(0, 'dataProp', 'Data property style'),
+		new ModelingStyle(1, 'objectPropAll', 'Object property style'),
+		new ModelingStyle(2, 'objectPropSubclass', 'Object-prop and subclassing style'),
+		new ModelingStyle(3, 'reify', 'Reification style'),
+		new ModelingStyle(4, 'classMembership', 'Class membership style')
+];
+
+var MappingNode = {
+		init: function(label, uri) {
+			this.name = label;
+			this.uri = uri;
+			this.width = 100;
+			this.height = 50;
+		},
+		getType: function() {
+			return "mapping";
+		},
+		getPathData: function() {
+			this.width=90;
+			this.height=40;
+			return BTypePath(this.width, this.height);
+		},
+		getURI: function() {
+			return "<"+this.uri+">";
+		},		
+		getRdfName: function() {
+			return "mappedTo";
+		},
+		hasVocab: function(shit_zu) {
+			return false;
+		}
+};
+
 function BTerm(name) {
 	this.selected = false;
 	this.name = name;
 	this.id = -1;
 	this.inVocabs = [];
+	this.modelingStyle = ModelingStyles[2];
+	this.perdurant = false;
+	this.mappingNode = null;
+	this.mappingLink = null;
+	this.initMappings();
 } 
 
 function BType(name) {
@@ -40,6 +86,19 @@ BObject.prototype.constructor = BObject;
 BValuation.prototype.constructor = BValuation;
 BRelation.prototype.constructor = BRelation;
 
+BTerm.prototype.initMappings = function() {
+	this.mappings = [];
+	var noneMapping = Object.create(Mapping);
+	noneMapping.init({to: "none", to_prefix: "_", to_namespace: "none", to_name: "none"});
+	noneMapping.selected = true;
+	this.mappings.push(noneMapping);
+};
+
+BTerm.prototype.addMapping = function(mapping) {
+	this.mappings.push(mapping);
+	this.addVocab(mapping.getPrefixedNamespace());
+};
+
 BTerm.prototype.getType = function() {
 	return this.type;
 };
@@ -59,6 +118,10 @@ BTerm.prototype.getRdfName = function() {
 
 BTerm.prototype.getCURI = function() {
 	return "pm:"+this.getRdfName();
+};
+
+BTerm.prototype.getURI = function() {
+	return "http://lod2-dev.vse.cz/data/puromodels#"+this.getRdfName();
 };
 
 BTerm.prototype.isValidLabel = function(label, unique) {
@@ -158,10 +221,26 @@ SubTypeOfLink.prototype.constructor = SubTypeOfLink;
 function PuroModel() {
 	this.links = [];
 	this.nodes = [];
-	this.idCounter = 0;
+	this.idCounter = 10;
 	this.name = "";
 	this.oldId = null;
 	this.vocabs = [];
+	this.created = Date.now();
+}
+
+PuroModel.prototype.propagateMapping = function(fromNode, mapping) {
+	if(fromNode instanceof BType) {
+		for(var i=0; i<this.links.length; i++) {
+			if(this.links[i].end == fromNode && (this.links[i] instanceof InstanceOfLink)) {
+				this.links[i].start.addMapping(mapping);
+			}				
+		}
+	}
+}
+
+PuroModel.prototype.addMapping = function(forNode, mapping) {
+	forNode.addMapping(mapping);
+	this.propagateMapping(forNode, mapping);
 }
 
 PuroModel.prototype.addVocab = function(vocab) {
@@ -183,6 +262,28 @@ PuroModel.prototype.delVocab = function(vocab) {
 	for(var j = 0;j<this.nodes.length; j++) this.nodes[i].delVocab(vocab);
 };
 
+PuroModel.prototype.addMappingNode = function(forNode, mapping) {
+	var label = mapping.getLabel();
+	if(forNode.mappingNode!=null && forNode.mappingLink!=null) {
+		//this.removeLink(forNode.mappingLink);
+		this.removeNode(forNode.mappingNode);
+		forNode.mappingNode = null;
+		forNode.mappingLink = null;
+	}
+	if(label!="_:none")
+	{
+		var mappingNode = Object.create(MappingNode);
+		mappingNode.init(label,mapping.uri);
+		mappingNode.x = forNode.x - 50;
+		mappingNode.y = forNode.y - 50;
+		this.addNode(mappingNode);
+		forNode.mappingNode = mappingNode;
+		var link = new BLink("mappedTo", forNode, mappingNode);
+		this.addLink(link);
+		forNode.mappingLink = link;
+	}
+};
+
 PuroModel.prototype.addNode = function(node) {
 	if(node instanceof BType
 		|| node instanceof BValuation
@@ -192,6 +293,10 @@ PuroModel.prototype.addNode = function(node) {
 			this.nodes.push(node);
 			this.updateBTypeLevels();
 		}
+	if(node.getType() == "mapping") {
+		node.id = this.idCounter++;
+		this.nodes.push(node);		
+	}
 };
 
 PuroModel.prototype.removeNode = function(node) {  
@@ -222,6 +327,7 @@ PuroModel.prototype.empty = function() {
 PuroModel.prototype.addLink = function(link) {
 	link.id = this.idCounter++;
 	this.links.push(link);
+	this.updateBTypeLevels();
 };
 
 PuroModel.prototype.getNodeById = function(id) {
@@ -303,12 +409,13 @@ PuroModel.prototype.updateBTypeLevels = function () {
 		for(var link=0; link<this.links.length; link++) {
 			if(this.links[link] instanceof InstanceOfLink && this.links[link].start == this.nodes[n])
 				isInstanceOf = true;
-			if(this.links[link] instanceof InstanceOfLink && this.links[link].end == this.nodes[n])
+			if((this.links[link] instanceof InstanceOfLink || this.links[link] instanceof SubTypeOfLink) && this.links[link].end == this.nodes[n])
 				noIncoming = false;
 		}
 		if(isInstanceOf && noIncoming) nodeStack.push(this.nodes[n]);
 	}
 	for(var n=0; n<nodeStack.length; n++) {
+		if(nodeStack[n] instanceof BType ) nodeStack[n].level = 1;
 		this.updateBLevelsFrom(nodeStack[n]);
 	}
 	
@@ -345,3 +452,19 @@ PuroModel.prototype.labelExists = function(label) {
 	return exists;
 }
 
+var Mapping = {
+		init: function(identifier) {
+			this.uri = identifier.to;
+			this.name = identifier.to_name;
+			this.prefix = identifier.to_prefix;
+			this.namespace = identifier.to_namespace;
+			this.selected = false;
+			this.id = this.uri;
+		},
+		getLabel: function() {
+			return this.prefix+":"+this.name;
+		},
+		getPrefixedNamespace: function() {
+			return this.prefix+": "+this.namespace;
+		}
+}

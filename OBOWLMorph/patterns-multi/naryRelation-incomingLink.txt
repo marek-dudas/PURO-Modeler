@@ -1,0 +1,73 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX puro: <http://lod2-dev.vse.cz/ontology/puro#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+INSERT
+{ 
+           
+  GRAPH <http://owlfragmentA> {
+    ?d puro:transformedTo ?domainClass .
+    ?r puro:transformedTo ?rangeClass .
+    ?link puro:transformedTo ?property .
+  
+     ?domainClass a owl:Class .
+     ?rangeClass a owl:Class .
+     ?property a owl:ObjectProperty;
+      rdfs:range ?rangeClass;
+      rdfs:domain ?domainClass;
+  }
+  GRAPH <http://owlfragmentB> {
+    ?d puro:transformedTo ?domainClass .
+    ?r puro:transformedTo ?rangeClass .
+    ?link puro:transformedTo ?property .
+  
+     ?domainClass a owl:Class .
+     ?rangeClass a owl:Class .
+     ?property a owl:ObjectProperty;
+      rdfs:range ?rangeClass;
+      rdfs:domain ?domainClass .
+  }
+  GRAPH <http://owlfragmentC> {
+    ?d puro:transformedTo ?domainClass .
+    ?r puro:transformedTo ?rangeClass .
+    ?link puro:transformedTo ?property .
+  
+     ?domainClass a owl:Class .
+     ?rangeClass a owl:Class .
+     ?property a owl:ObjectProperty;
+      rdfs:range ?rangeClass;
+      rdfs:domain ?domainClass;
+  }  
+  GRAPH <http://owlfragmentD> {
+    ?d puro:transformedTo ?domainClass .
+    ?r puro:transformedTo ?rangeClass .
+    ?link puro:transformedTo ?property .
+  
+     ?domainClass a owl:Class .
+     ?rangeClass a owl:Class .
+     ?property a owl:ObjectProperty;
+      rdfs:range ?rangeClass;
+      rdfs:domain ?domainClass;
+  }
+}
+WHERE
+{ 
+  ?d a puro:BRelation;
+   rdfs:label ?d_label.
+  ?link a puro:Link;
+    rdfs:label ?link_label;
+    puro:linkedTo ?d.
+  ?b puro:instanceOf ?r;
+   puro:linkedTo ?link .
+  ?r a puro:BType;
+   rdfs:label ?r_label .        
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?r_label)) AS ?domainClass )
+  BIND(IF(?link_label != "", URI(CONCAT("http://owlfragment/entity/", ?link_label)), 
+    URI(CONCAT("http://owlfragment/entity/property_", ?d_label))) AS ?property )
+  BIND(URI(CONCAT("http://owlfragment/entity/", ?d_label)) AS ?rangeClass )  
+   FILTER NOT EXISTS {
+      GRAPH ?any {?link puro:transformedTo [] .}      
+   }
+}

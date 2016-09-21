@@ -1,0 +1,14 @@
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+
+INSERT DATA
+{
+  GRAPH <http://owlfragmentA> {
+    <http://owlfragment/entity/> a owl:Ontology;
+      dc:title "OWL Ontology Seed";
+      dc:description "OWL ontology fragment generated from the OBM.";
+      dc:creator "OBMOWLMorph";
+      owl:versionInfo "1.0" .      
+  }      
+}

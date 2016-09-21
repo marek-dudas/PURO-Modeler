@@ -1,0 +1,45 @@
+body
+{ font: normal .80em trebuchet ms, sans-serif;
+  background: #fff;
+  color: #5D5D5D;}
+
+p
+{ padding: 0 0 20px 0;
+  line-height: 1.7em;}
+
+img
+{ border: 0;}
+
+h1, h2, h3, h4, h5, h6 
+{ font: normal 165% 'century gothic', arial, sans-serif;
+  color: #2DB8CD;
+  margin: 0 0 14px 0;
+  padding: 10px 0 5px 0;}
+
+h2
+{ font: normal 165% 'century gothic', arial, sans-serif;
+  color: #B60000;}
+
+h3
+{ font: normal 165% 'century gothic', arial, sans-serif;}
+
+h4, h5, h6
+{ margin: 0;
+  padding: 0 0 5px 0;
+  font: normal 120% arial, sans-serif;
+  color: #B60000;}
+
+h5, h6
+{ font: italic 95% arial, sans-serif;
+  color: #888;}
+
+h6
+{ color: #362C20;}
+
+a, a:hover
+{ outline: none;
+  text-decoration: underline;
+  color: #A4AA04;}
+
+a:hover
+{ text-decoration: none;}

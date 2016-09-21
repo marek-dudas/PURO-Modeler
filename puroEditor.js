@@ -1,11 +1,12 @@
-function PuroEditor(toolBoxElement, viewElement, obmListTableElement, width, height) {
+var PuroEditor = {
+  init: function(toolBoxElement, viewElement, obmListTableElement, width, height) {
 	model = new PuroModel();
 	this.view = new PuroView(width, height, viewElement);
 	this.control = new PuroController(model); 
 	this.view.decorateControls(toolBoxElement, this.control);
 	this.view.setData(model);
 	this.control.setView(this.view);
-	this.view.updateOBMList(obmListTableElement);
+	//this.view.updateOBMList(obmListTableElement);
 	//this.view.startLayout();
 	this.view.updateView();
 	
@@ -20,11 +21,13 @@ function PuroEditor(toolBoxElement, viewElement, obmListTableElement, width, hei
 	  else
 	    return results[1];
 	};
-
-	this.loadModelFromUrl = function() {
+  },
+  
+	loadModelFromUrl: function() {
 		var modelId = gup('model');
 		if(modelId!=null) this.control.loadModel(modelId);
-	};
+	}
 }
+
 
 

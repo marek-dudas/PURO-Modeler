@@ -6,8 +6,10 @@ function PuroView(width, height, viewingElement){
 	this.height = height;
 	this.colors = d3.scale.category10();
     this.layoutRunning = false;
+    
+    this.viewingElement = d3.select("#"+viewingElement);
 	    
-	this.svg = d3.select("#"+viewingElement)
+	this.svg = this.viewingElement
 		.append("svg")
 		.attr("width", width)
 		.attr("height", height);
@@ -45,29 +47,46 @@ function PuroView(width, height, viewingElement){
     this.svg = this.svg.append("svg:g");
     
     	
-    	this.nodes = this.svg.append("svg:g").selectAll("g");
-		this.edges = this.svg.append("svg:g").selectAll("line");
-		this.linktext = this.svg.append("svg:g").selectAll("g.linklabelholder");
-		
+	this.nodes = this.svg.append("svg:g").selectAll("g");
+	this.edges = this.svg.append("svg:g").selectAll("line");
+	this.linktext = this.svg.append("svg:g").selectAll("g.linklabelholder");
+	
+	if(PuroAppSettings.vocabComparisonEnabled) {
 		this.vocabsDiv = d3.select("#"+vocabsDiv);
 		this.vocabs = this.vocabsDiv.selectAll(".vocabBox");
-		
-				// create the zoom listener
-		var zoomListener = d3.behavior.zoom()
-		  .scaleExtent([0.1, 2])
-		  .on("zoom", zoomHandler);
-		  //.on("dblclick.zoom", function(){});
-		
-		var mainG = this.svg;
-		// function for handling zoom event
-		function zoomHandler() {
-			var scale = 1 - ( (1 - d3.event.scale) * 0.1 );
-		  mainG.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-		}
-				
-		zoomListener(this.rootSvg);
-		this.rootSvg.on("dblclick.zoom", null);
-}
+	}
+	
+			// create the zoom listener
+	var zoomListener = d3.behavior.zoom()
+	  .scaleExtent([0.1, 2])
+	  .on("zoom", zoomHandler);
+	  //.on("dblclick.zoom", function(){});
+	
+	var mainG = this.svg;
+	// function for handling zoom event
+	function zoomHandler() {
+		var scale = 1 - ( (1 - d3.event.scale) * 0.1 );
+	  mainG.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	}
+			
+	zoomListener(this.rootSvg);
+	this.rootSvg.on("dblclick.zoom", null);
+	
+	var thisView = this;
+	window.addEventListener('resize', function(event){
+		  thisView.updateSize();
+		});
+	
+	$(window).load(function () { thisView.updateSize(); });
+	
+	this.mappingChoices = null;
+};
+
+PuroView.prototype.updateSize = function() {
+	var currentSize = this.viewingElement.node().getBoundingClientRect();
+	this.rootSvg.attr("width", currentSize.width - 12).attr("height", currentSize.height - 12);
+	this.layout.size([currentSize.width-12, currentSize.height-12]);
+};
 
 PuroView.prototype.startLayout = function() {
 	var thisView = this;
@@ -94,21 +113,14 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 	this.createToolbox(toolBoxElement, puroControl);
 			
 	this.rootSvg.on("mousedown", function(){
-		puroControl.canvasMouseDown(d3.mouse(this), null);
+		puroControl.canvasMouseDown(d3.mouse(PuroEditor.view.svg.node()), null);
 	});
 	
-	d3.select("#btnNew").on("click", function(){puroControl.newModel();});
-	d3.select("#btnSave").on("click", function(){puroControl.saveModel();});
-	d3.select("#btnSaveAs").on("click", function(){puroControl.saveModelAs();});
-	d3.select("#btnTransform").on("click", function(){puroControl.transformModel();});
-	
-	//var view = this;
-	//d3.select("#btnP").on("click", function(){view.drawVocabPaths();});
-	
+	if(PuroAppSettings.vocabComparisonEnabled) this.decorateVocabControls(puroControl);
+	if(PuroAppSettings.obmToolboxEnabled) this.decorateEditorControls(puroControl);
+	if(PuroAppSettings.modelingStyleBoxEnabled) this.decorateModelingControls(puroControl);
+
 	var view = this;
-		
-	d3.select("#btnAddVocab").on("click", function(){puroControl.newVocab();});
-	d3.select("#btnRemoveVocab").on("click", function(){puroControl.delVocab();});
 	d3.select("#btnLayout").on("click", function(){
 		if(view.layoutRunning) {
 			view.layout.stop();
@@ -121,6 +133,35 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 		}
 	});
 	
+	d3.select("#btnLoadObmList").on("click", function(){
+		view.updateOBMList(obmListTableElement);
+	})
+};
+
+PuroView.prototype.decorateEditorControls = function(puroControl) {
+	d3.select("#btnNew").on("click", function(){puroControl.newModel();});
+	d3.select("#btnSave").on("click", function(){puroControl.saveModel();});
+	d3.select("#btnSaveAs").on("click", function(){puroControl.saveModelAs();});
+	d3.select("#btnTransform").on("click", function(){puroControl.transformModel();});	
+};
+
+PuroView.prototype.decorateVocabControls = function(puroControl) {
+	d3.select("#btnAddVocab").on("click", function(){puroControl.newVocab();});
+	d3.select("#btnRemoveVocab").on("click", function(){puroControl.delVocab();});	
+};
+
+PuroView.prototype.decorateModelingControls = function(puroControl) {
+	this.modelingChoices = d3.select("#modelingStyles").selectAll(".modelingStyle").data(ModelingStyles);
+	var choicesDivs = this.modelingChoices.enter().append("div").classed("modelingStyle",true);
+	choicesDivs.append("input")
+		.attr("type", "radio")
+		.attr("name", "modelingChoice")
+		.attr("value", function(d) {return d.name;})
+		.on("click", function(d) {puroControl.modelingStyleChanged(d, d3.select(this).node().checked);});
+	choicesDivs.append("span").text(function(d) {return d.label;});
+	this.perdurantChBox = d3.select("#chbPerdurant");
+	this.perdurantChBox.on("click", function() {puroControl.temporalityChanged(d3.select(this).node().checked)});
+	d3.select("#btnUpdateOWL").on("click", function(){puroControl.updateOFM();});
 };
 
 PuroView.prototype.updateOBMList = function(listElement) {
@@ -138,11 +179,12 @@ PuroView.prototype.fillOBMList = function(obms) {
 		.classed("button", true)
 		.attr("id",obms[i]._id)
 		.attr("type","button")
-		.attr("value", obms[i].name)
+		.attr("value", obms[i].name+" by "+obms[i].author)
 		.on("click", function(){
 			ctrl.loadModel(this.id);});
 		//tr.append("td").append("input").type("button").text(obms[i].id);
 	}
+	this.updateSize();
 };
 
 PuroView.prototype.setData = function(model) {
@@ -172,12 +214,52 @@ PuroView.prototype.tick = function() {
   		});
     }
     
-    if(this.tickCounter >= vocabHighlightUpdateRate) {
-    	this.drawVocabPaths();
-    	this.tickCounter = 0;
+    if(PuroAppSettings.vocabComparisonEnabled) {
+	    if(this.tickCounter >= vocabHighlightUpdateRate) {
+	    	this.drawVocabPaths();
+	    	this.tickCounter = 0;
+	    }
+	    this.tickCounter++;
     }
-    this.tickCounter++;
 };
+
+PuroView.prototype.setDraggedNode = function(node) {
+	
+	this.dragSvg = d3.select("body").append("svg").style("position", "absolute")
+				.style("z-index", 1000)
+				.attr("overflow", "visible")
+				.attr("width", node.width)
+				.attr("height", node.height);
+	
+	this.dragButton = this.dragSvg.append("g").classed("node",true);
+	
+	var button = this.dragButton.append("path").attr("d", node.getPathData());
+			//if(specialColor != null) button.style("fill", specialColor);
+	this.dragButton.append("text").text(node.name)
+		.attr("text-anchor", "middle")
+		.attr("x", "0") //width/2+5)
+		.attr("y","0")
+	     .attr("dx", 1)
+	     .attr("dy", ".35em");
+  		//.style("font-size", Math.min(node.width, (node.width - 8) 
+  		//	/ button.getComputedTextLength() * 12) + "px");
+	
+	var w = d3.select(window)
+    .on("mousemove", mousemove)
+    .on("mouseup", mouseup);
+
+	d3.event.preventDefault(); // disable text dragging
+	
+	function mousemove() {
+		PuroEditor.view.dragSvg.style("left", d3.mouse(d3.select("body").node())[0]+"px").style("top", d3.mouse(d3.select("body").node())[1]+node.height+"px");
+	}
+	
+	function mouseup() {
+		  w.on("mousemove", null).on("mouseup", null);
+		  PuroEditor.view.dragSvg.remove();
+		PuroEditor.control.canvasMouseDown(d3.mouse(PuroEditor.view.svg.node()));
+	}
+}
 
 PuroView.prototype.updateView = function() {
 	   
@@ -245,13 +327,23 @@ PuroView.prototype.updateView = function() {
 	        d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
 	        view.tick();
 	        if(view.layoutRunning) view.layout.resume();
-	        view.drawVocabPaths();
+	        if(PuroAppSettings.vocabComparisonEnabled) view.drawVocabPaths();
 	    }
 	    
 	    //this.nodes.enter()
 	    var nodesEnter = this.nodes.enter().append("g")
 	        .on("click", function(d){
 	        	puroControl.canvasMouseDown(d3.mouse(this), d);
+	        	if(PuroAppSettings.modelingStyleBoxEnabled) d3.select("#nodeProps").style("left", (d3.event.clientX+30)+"px").style("top", (d3.event.clientY+30)+"px");
+	        	if(PuroAppSettings.mappingBoxEnabled) 
+	        		d3.select("#nodeMappings")
+	        		.style("left", (d3.event.clientX+30)+"px")
+	        		.style("top", (d3.event.clientY+180)+"px")
+	        		.style("height", (d.mappings.length*16+30)+"px");
+	        	    d3.select("#mappingInfoWindow")
+	        		.style("left", (d3.event.clientX+290)+"px")
+	        		.style("top", (d3.event.clientY+180)+"px");  	    
+	     
 	        	})
 	        .on('dblclick', function(d){
 			     puroControl.nodeDblClick(d);
@@ -259,7 +351,8 @@ PuroView.prototype.updateView = function() {
     			  text.selectSubString(0,0);
     			})    			
 	        .call(node_drag)
-	        .classed("node",true); 
+	        .classed("node",true)
+	        .classed("mapping",function(d){return d.getType()=="mapping"});
 	        //.append("circle")
 	        //.attr("r", 10)
 	    nodesEnter.append("path")
@@ -278,7 +371,7 @@ PuroView.prototype.updateView = function() {
 		     .attr("dx", 1)
 		     .attr("dy", ".35em");
 		     
-		 nodesEnter.append("text") //added enter() dunnowhy
+		 nodesEnter.append("text")
 		 	.classed("typelabel", true)
 		 	.text(function(d) { return d.getType();})
 		 	.attr("x", function(d) {return d.width/2;})
@@ -289,9 +382,57 @@ PuroView.prototype.updateView = function() {
 		 this.nodes.selectAll(".nodename").text(function(d) {return d.name;});   
 		 this.nodes.selectAll("path").classed("selected", function(d) {return d.selected;});
 		this.nodes.exit().remove();
-    //}
     
-    this.vocabs = this.vocabs.data(this.model.vocabs, function(d) {return d;});
+	if(PuroAppSettings.vocabComparisonEnabled) this.updateVocabList(puroControl);
+	if(PuroAppSettings.modelingStyleBoxEnabled) this.updateNodeModelingProps(puroControl);
+        
+    d3.select("#modelname").text(this.model.name);
+    
+    if(this.layoutRunning) this.layout.start();
+    this.tick();
+    
+    if(PuroAppSettings.vocabVisualizationEnabled) this.drawVocabPaths();
+};
+
+PuroView.prototype.updateNodeModelingProps = function(puroControl) {
+	var nodePropsDiv = d3.select("#nodeProps");
+	var nodeMappingsDiv = d3.select("#nodeMappings");
+	if(puroControl.selectedNode==null) 
+		{
+			nodePropsDiv.style("visibility", "hidden");
+			nodeMappingsDiv.style("visibility", "hidden");			
+		}
+	else { 
+		nodePropsDiv.style("visibility","visible");
+		this.modelingChoices.selectAll("input").property("checked", function(d) {return d.selected;});
+		this.perdurantChBox.property("checked", puroControl.selectedNode.perdurant);
+		
+		if(! (puroControl.selectedNode instanceof BObject || puroControl.selectedNode instanceof BValuation)){
+			nodeMappingsDiv.style("visibility", "visible");	
+			if(this.mappingChoices != null) this.mappingChoices.remove();
+			this.mappingChoices = d3.select("#mappingChoices").selectAll(".mappingChoice").data(puroControl.selectedNode.mappings);
+			var choicesDivs = this.mappingChoices.enter().append("div").classed("mappingChoice",true);
+			choicesDivs.append("input")
+				.attr("type", "radio")
+				.attr("name", "mappingChoice")
+				.attr("value", function(d) {return d.getLabel();})
+				.on("click", function(d) {puroControl.mappingChanged(d, d3.select(this).node().checked);});
+			choicesDivs.append("span").text(function(d) {return d.getLabel();})
+				.on("mouseover", function(d) {puroControl.showMappingInfo(d);})
+				.on("mouseleave", function(d) {puroControl.hideMappingInfo();});
+			this.mappingChoices.exit().remove();
+			
+			this.mappingChoices.selectAll("input").property("checked", function(d) {return d.selected;});
+		}
+		else {
+			nodeMappingsDiv.style("visibility", "hidden");	
+			if(this.mappingChoices != null) this.mappingChoices.remove();
+		}
+	}	
+}
+
+PuroView.prototype.updateVocabList = function(puroControl) {
+	this.vocabs = this.vocabs.data(this.model.vocabs, function(d) {return d;});
     var vocabPees = this.vocabs.enter().append("tr").classed(".vocabBox",true);
     vocabPees.append("td").append("input")
     	.attr("type", "checkbox")
@@ -313,13 +454,7 @@ PuroView.prototype.updateView = function() {
     var vocabHeading = purostr.compareVocabs;
     if(puroControl.selectedNode != null) vocabHeading = purostr.isInVocabs;
     d3.select("#vocabListHeading").text(vocabHeading);
-    
-    d3.select("#modelname").text(this.model.name);
-    
-    if(this.layoutRunning) this.layout.start();
-    this.tick();
-    this.drawVocabPaths();
-};
+}
 
 PuroView.prototype.drawVocabPaths = function() {
 	this.svg.selectAll(".vocabPath").remove();
@@ -377,12 +512,12 @@ PuroView.prototype.findBestLabelPos = function(otherPositions, path){
 };
 
 PuroView.prototype.createToolbox = function(toolElement, puroControl) {
-	var toolSvg = d3.select("#"+toolElement).append("svg")
+	this.toolSvg = d3.select("#"+toolElement).append("svg")
 		.attr("width", 300)
 		.attr("height", 500);
 	
 	addButton = function(label, width, height, x, y, pathFunction, onClickFunction, specialColor) {
-		var gButton = toolSvg.append("g").classed("node",true);
+		var gButton = PuroEditor.view.toolSvg.append("g").classed("node",true);
 		
 		var button = gButton.append("path").attr("d", pathFunction.apply(null, [width,height]));
 				if(specialColor != null) button.style("fill", specialColor);
@@ -399,7 +534,7 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	    		return 'translate( '+x+', '+y+')';
 	  		});        	
 	  	gButton.on("mousedown", function(){
-	  		toolSvg.selectAll("g").classed("selected", false); 
+	  		PuroEditor.view.toolSvg.selectAll("g").classed("selected", false); 
 	  		d3.select(this).classed("selected", true);
 	  		onClickFunction.call(null);
 	  		});

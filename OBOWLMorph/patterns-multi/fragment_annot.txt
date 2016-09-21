@@ -1,0 +1,35 @@
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+
+INSERT DATA
+{
+  GRAPH <http://owlfragmentA> {
+    <http://owlfragment/entity/> a owl:Ontology;
+      dc:title "Ontology Fragment D";
+      dc:description "datatype modeling style";
+      dc:creator "OBM2OWL transformer";
+      owl:versionInfo "D" .      
+  }         
+  GRAPH <http://owlfragmentB> {
+    <http://owlfragment/entity/> a owl:Ontology;
+      dc:title "Ontology Fragment C";
+      dc:description "object property modeling style";
+      dc:creator "OBM2OWL transformer";
+      owl:versionInfo "C" .      
+  }            
+  GRAPH <http://owlfragmentC> {
+    <http://owlfragment/entity/> a owl:Ontology;
+      dc:title "Ontology Fragment B";
+      dc:description "reification modeling style";
+      dc:creator "OBM2OWL transformer";
+      owl:versionInfo "B" .      
+  }                  
+  GRAPH <http://owlfragmentD> {   
+    <http://owlfragment/entity/> a owl:Ontology;
+      dc:title "Ontology Fragment A";
+      dc:description "object property and subclassing modeling style";
+      dc:creator "OBM2OWL transformer";
+      owl:versionInfo "A" .      
+  }
+}

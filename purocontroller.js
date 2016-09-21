@@ -10,21 +10,32 @@ function PuroController(model){
 	this.selectedVocabs = [];
 }
 
+PuroController.prototype.startNodeDrag = function(node) {
+	
+	this.view.setDraggedNode(node);
+
+    
+}
+
 PuroController.prototype.setTool = function(tool){
 	this.linkStart = null;
 	this.activeTool = tool;
 	this.selectNode(null);
 	switch(this.activeTool){
 		case this.TOOL.createBType:
+			this.startNodeDrag(new BType("new BType"));
 			d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Type.");
 			break;
 		case this.TOOL.createBValuation:
+			this.startNodeDrag(new BValuation("new BValuation"));
 			d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Valuation.");
 			break;
 		case this.TOOL.createBObject:
+			this.startNodeDrag(new BObject("new BObject"));
 			d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Object.");
 			break;
 		case this.TOOL.createBRelation:
+			this.startNodeDrag(new BRelation("new BRelation"));
 			d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Relation.");
 			break;
 		case this.TOOL.link:
@@ -52,6 +63,7 @@ PuroController.prototype.setView = function(view){
 };
 
 PuroController.prototype.newNode = function(node, location){
+	this.setTool(this.TOOL.select);
 	node.x = location[0];
 	node.y = location[1];
 	this.model.addNode(node);
@@ -79,17 +91,26 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 				this.selectNode(null);
 				if(this.activeTool == this.TOOL.link) {
 					this.model.addLink(new BLink("",this.linkStart, node));
+					this.saveModel();
 				}
 				if(this.activeTool == this.TOOL.instanceOfLink) {
 					var link = new InstanceOfLink("new link",this.linkStart, node);
-					if(link.start!=null) this.model.addLink(link);
+					if(link.start!=null) 
+						{
+							this.model.addLink(link);
+							this.saveModel();
+						}
 					else {
 						alert("Can't create instanceOf link between these entities.");
 					}
 				}
 				if(this.activeTool == this.TOOL.subtypeOfLink) {
 					var link = new SubTypeOfLink("new link",this.linkStart, node);
-					if(link.start!=null) this.model.addLink(link);
+					if(link.start!=null) 
+						{
+							this.model.addLink(link);
+							this.saveModel();
+						}
 					else {
 						alert("Can't create subTypeOf link between these entities.");
 					}
@@ -140,6 +161,34 @@ PuroController.prototype.selectNode = function(node, noDeselectFirst) {
 	else {
 		this.selectedNode = null;
 	}
+	this.updateDisplayedModelingSelection();
+};
+
+PuroController.prototype.modelingStyleChanged = function(modelingStyle, checked) {
+	if(checked == true && this.selectedNode != null) this.selectedNode.modelingStyle = modelingStyle;
+};
+
+PuroController.prototype.mappingChanged = function(mapping, checked) {
+	if(this.selectedNode!=null) {
+		for(var i=0; i<this.selectedNode.mappings.length; i++) this.selectedNode.mappings[i].selected = false;
+	}
+	if(checked == true && this.selectedNode != null) {
+		mapping.selected = true;
+		//d3.select("#vowlFrame").property("src", vowlUrl+mapping.namespace);
+		this.model.addMappingNode(this.selectedNode, mapping);
+		this.view.updateView();
+	}	
+};
+
+PuroController.prototype.temporalityChanged = function(checked) {
+	if(this.selectedNode != null) this.selectedNode.perdurant = checked;
+};
+
+PuroController.prototype.updateDisplayedModelingSelection = function() {
+	for(var i=0; i<ModelingStyles.length; i++) {
+		if(this.selectedNode!=null && ModelingStyles[i].id == this.selectedNode.modelingStyle.id) ModelingStyles[i].selected = true;
+		else ModelingStyles[i].selected = false;
+	}
 };
 
 PuroController.prototype.nodeDblClick = function(node) {
@@ -156,8 +205,9 @@ PuroController.prototype.nodeDblClick = function(node) {
 			      validRename = true;}
 			    else alert('The name must be unique.');
 			}
-		} while(result && !validRename)
+		} while(result && !validRename);
 };
+
 PuroController.prototype.loadModel = function(id) {
 	 this.store.getOBMbyId(id, this);
 };
@@ -177,6 +227,9 @@ PuroController.prototype.loadModelFromJStore = function(obm) {
 	 this.view.setData(this.model);
 	 this.view.updateView();
 	 this.showAllVocabs();
+	 
+	 //DEBUG
+	 this.getMappings();
 };
 
 PuroController.prototype.promptForModelName = function() {
@@ -205,6 +258,7 @@ PuroController.prototype.saveModel = function() {
   		
   		//store.put(this.model,null);
   	if(this.model.name == "") this.model.name = this.promptForModelName();
+  	this.model.author = this.getCurrentUser();
  	this.store.saveModel(this.model);
  	//newItem(this.model,null);
  	//this.store.save(null);
@@ -217,11 +271,12 @@ PuroController.prototype.saveModel = function() {
 PuroController.prototype.saveModelAs = function() {
 	this.model.name = this.promptForModelName();
 	this.model.oldId = null;
+  	this.model.author = this.getCurrentUser();
 	this.store.saveModel(this.model);
 };
 
 PuroController.prototype.transformModel = function() {
-	PuroRdfSerializer.serialize(this.model);
+	PuroRdfSerializer.transformToVariants(this.model);
 }
 
 PuroController.prototype.newVocab = function() {
@@ -264,8 +319,115 @@ PuroController.prototype.vocabChange = function(vocab, checked) {
 	this.view.drawVocabPaths();
 };
 
+PuroController.prototype.updateOFM = function() {
+	function processTransformResponse(data) {
+		dojo.require("dojox.json.ref");
+		ofmUrls = dojox.json.ref.fromJson(data);
+		if(ofmUrls != null && ofmUrls.length>0) {
+			d3.select("#vowlFrame").property("src", ofmUrls[0].vowlUrl);
+			d3.select("#ofmDownloadLink").property("href", ofmUrls[0].downloadUrl);
+			d3.select("#ofmVisualLink").property("href", ofmUrls[0].vowlUrl);
+		}
+	};
+	PuroRdfSerializer.getOFMVisualizationUrl(this.model, processTransformResponse);
+};
+
+PuroController.prototype.showMappingInfo = function(mapping) {
+	if(mapping.name!="none") {
+		d3.select("#mappingInfoWindow").style("visibility", "visible");
+		d3.select("#mappingInfoFrame").property("src", mapping.uri);
+	}
+}
+
+PuroController.prototype.hideMappingInfo = function() {
+	d3.select("#mappingInfoWindow").style("visibility", "hidden");	
+}
+
+PuroController.prototype.extractMappings = function(data) {
+	dojo.require("dojox.json.ref");
+	var mappings = null;
+	if(typeof data == "string" )  mappings = dojox.json.ref.fromJson(data);
+	else if(typeof data == "object") mappings = data;
+	if(mappings != null) {
+		this.mappings = mappings.mappings;
+		this.namespaces = mappings.namespaces;
+		this.storeMappings();
+		this.storeVocabs();
+	}
+	this.hideSpinner();
+	this.view.updateView();
+}
+
+PuroController.prototype.storeMappings = function() {
+	for(var i=0; i<this.model.nodes.length; i++) {
+		this.model.nodes[i].initMappings();
+		for(var j=0; j<this.mappings.length; j++) {
+			if(this.model.nodes[i].getURI() == this.mappings[j].from) {
+				var mapping = Object.create(Mapping);
+				mapping.init(this.mappings[j]);
+				this.model.addMapping(this.model.nodes[i], mapping);			
+			}
+		}
+	}
+}
+
+PuroController.prototype.storeVocabs = function() {
+	for(var i=0; i<this.namespaces.length; i++) {
+		this.model.addVocab(this.namespaces[i].str);
+		this.selectedVocabs.push(this.namespaces[i].str);
+	}
+}
+
+PuroController.prototype.showSpinner = function() {
+	this.spinner = new Spinner().spin(document.getElementById('mappingProgressDiv'));
+	d3.select("#mappingProgressDiv").style("visibility", "visible");
+}
+
+PuroController.prototype.hideSpinner = function() {
+	this.spinner.stop();
+	d3.select("#mappingProgressDiv").style("visibility", "hidden");
+}
+
+PuroController.prototype.getMappings = function() {
+	this.showSpinner();
+	if(PuroAppSettings.loadDebugJson) $.get('../debug/mappingExample.json', this.extractMappings.bind(this));
+	else PuroRdfSerializer.getMappings(this.model, this.extractMappings.bind(this));
+}
+
+PuroController.prototype.getTransformation = function() {
+	function processTransformResponse(data) {
+		dojo.require("dojox.json.ref");
+		ofmUrls = dojox.json.ref.fromJson(data);
+		if(ofmUrls != null && ofmUrls.length>0) {
+			d3.select("#vowlFrame").property("src", ofmUrls[0].vowlUrl);
+			d3.select("#ofmDownloadLink").property("href", ofmUrls[0].downloadUrl);
+			d3.select("#ofmVisualLink").property("href", ofmUrls[0].vowlUrl);
+		}
+	};
+	PuroRdfSerializer.getOFMVisualizationUrl(this.model, processTransformResponse);
+};
+
+PuroController.prototype.getCurrentUser = function () {
+	if(document.getElementById("user")) this.currentUser = document.getElementById("user").value;
+	return this.currentUser;
+};
+
 PuroController.prototype.getOBMs = function() {
-	return this.store.getOBMs(this.view);
+	//return this.store.getOBMs(this.view);	
+	var control = this;
+	var user = this.getCurrentUser();
+	var pass = document.getElementById("pass").value;
+	$.get(couchLoginUrl+"?user="+user+"&pass="+pass, function(data) {
+		dojo.require("dojox.json.ref");
+		var response = dojox.json.ref.fromJson(data);
+		if(response.result) {
+			control.store.getOBMs(control.view, response.couchurl, user);
+			d3.select("#divLogin").html("Logged in as "+user);
+		}
+		else {
+			d3.select("#divLoginMessage").html("Login failed.")
+		}
+	})
 };
 
 PuroController.prototype.createVocabPaths = function(vocab) {
@@ -536,6 +698,15 @@ function nearEllipseIntersection(ellipse,line, nearTo) {
 }
 
 BType.prototype.linkIntersection = function(link, nearTo){
+	var ellipse = {};
+	ellipse.a = this.width/2;
+	ellipse.b = this.height/2;
+	ellipse.x = this.x;
+	ellipse.y = this.y;
+	return nearEllipseIntersection(ellipse, link, nearTo);
+};
+
+MappingNode.linkIntersection = function(link, nearTo){
 	var ellipse = {};
 	ellipse.a = this.width/2;
 	ellipse.b = this.height/2;

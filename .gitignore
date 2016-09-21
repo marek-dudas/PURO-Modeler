@@ -24,3 +24,8 @@ dojox/
 d3.v3.js
 getgraph.*
 getgraph.php.htm
+
+*.rdf
+*.nq
+*.tar
+*.json

@@ -1,8 +1,8 @@
-var editor = new PuroEditor(
+PuroEditor.init(
 	"tools", 
 	"canvas",
 	"obmTable",
 	1100,900
 );
 
-editor.loadModelFromUrl();
+PuroEditor.loadModelFromUrl();
