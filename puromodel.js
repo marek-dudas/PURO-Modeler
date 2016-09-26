@@ -39,6 +39,24 @@ var MappingNode = {
 		}
 };
 
+var SyntaxError = {
+		//error: Object.freeze({missingType:{}, missingLabel:{}, redundantLabel:{}, wrongDirection:{}}),
+		init: function() {
+			this.errors = [];
+		},
+		getMessage: function() {
+			var message = "";
+			for(var i=0; i<this.errors.length; i++) message += this.errors[i];
+			return message;
+		},
+		setError: function(error) {
+			this.errors.push(error);
+		},
+		hasError: function() {
+			return this.errors.length>0;
+		}
+};
+
 function BTerm(name) {
 	this.selected = false;
 	this.name = name;
@@ -47,7 +65,10 @@ function BTerm(name) {
 	this.modelingStyle = ModelingStyles[2];
 	this.perdurant = false;
 	this.mappingNode = null;
-	this.mappingLink = null;
+	
+	this.errors = Object.create(SyntaxError);
+	this.errors.init();
+	
 	this.initMappings();
 } 
 
@@ -171,6 +192,8 @@ function BLink(name, start, end) {
 	this.right = true;
 	this.left = false;
 	this.id = -1;
+	this.errors = Object.create(SyntaxError);
+	this.errors.init();
 } 
 
 BLink.prototype.isValidLabel = function(label, unique) {
@@ -199,6 +222,13 @@ BLink.prototype.connectedTo = function(node) {
 	if(this.start==node || this.end == node) return true;
 	else return false;
 };
+
+function RelationLink(name, start, end) {
+	if(( ((start instanceof BType) || (start instanceof BObject)) && ((end instanceof BValuation) || (end instanceof BRelation)))
+			|| ( (start instanceof BRelation) && ( (end instanceof BValuation) || (end instanceof BObject) || (end instanceof BType) ))) 
+		return new BLink("", start, end);
+	else return null;
+}
 
 function InstanceOfLink(name, start, end) {
 	if((start instanceof BType || start instanceof BObject)
@@ -450,6 +480,54 @@ PuroModel.prototype.labelExists = function(label) {
 		}
 	}
 	return exists;
+}
+
+PuroModel.prototype.linksLinkedToNode = function(node) {
+	var linkedLinks = [];
+	for(var i=0; i<this.links.length; i++) {
+		if(this.links[i].start == node || this.links[i].end == node) linkedLinks.push(this.links[i]);
+	}
+	return linkedLinks;
+}
+
+PuroModel.prototype.validate = function() {
+	for(var i=0; i<this.nodes.length; i++) this.nodes[i].errors.init();
+	for(var i=0; i<this.links.length; i++) {
+		this.links[i].errors.init();
+	}
+	for(var i=0; i<this.nodes.length; i++) {
+		if(this.nodes[i] instanceof BValuation) {
+			var linked = this.linksLinkedToNode(this.nodes[i]);
+			for(var l=0; l<linked.length; l++) {
+				if(linked[l].name == "") linked[l].errors.setError(purostr.errorLabelMiss);
+			}
+		}
+		if(this.nodes[i] instanceof BRelation) {
+			var linked = this.linksLinkedToNode(this.nodes[i]);
+			if(linked.length == 2) {
+				if(linked[0].start == node && linked[1].end == node || linked[0].end == node && linked[1].start == node) {
+					if(linked[0].name != "") linked[0].errors.setError(purostr.errorLabelPlus);
+					if(linked[1].name != "") linked[1].errors.setError(purostr.errorLabelPlus);
+				}
+				else {
+					linked[0].wrongDirection = linked[1].errors.setError(purostr.errorDirection);
+				}
+			}
+			else {
+				for(var l=0; l<linked.length; l++) {
+					if(linked[l].name == "") linked[l].errors.setError(purostr.errorLabelMiss);
+				}
+			}
+		}
+		if(this.nodes[i] instanceof BObject) {
+			var linked = this.linksLinkedToNode(this.nodes[i]);
+			var hasType = false;
+			for(var l=0; l<linked.length; l++) {
+				if(linked[l] instanceof InstanceOfLink) hasType = true;
+			}
+			if(!hasType) this.nodes[i].errors.setError(purostr.errorType);
+		}
+	}
 }
 
 var Mapping = {

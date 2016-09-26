@@ -269,7 +269,7 @@ PuroView.prototype.updateView = function() {
     
 	this.edges.enter()
 	        .append("line")
-	        .style("stroke", "#ccc")
+	        .style("stroke", function(d) {return (d.errors.hasError)?"#f00":"#ccc";})
 	        .style("stroke-width", 2)
 		    .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
 		    .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
@@ -357,7 +357,7 @@ PuroView.prototype.updateView = function() {
 	        //.attr("r", 10)
 	    nodesEnter.append("path")
 	        .attr("d", function(d) {
-	        	return d.getPathData();});	        	
+	        	return d.getPathData();});
 	        //.style("fill", "#ccc");
 	        
 	    nodesEnter.append("text")
@@ -379,8 +379,14 @@ PuroView.prototype.updateView = function() {
 		 	.attr("fill", "#ccc");
 		 	
 		 this.nodes.selectAll(".typelabel").text(function(d) {return d.getType();});   
-		 this.nodes.selectAll(".nodename").text(function(d) {return d.name;});   
-		 this.nodes.selectAll("path").classed("selected", function(d) {return d.selected;});
+		 this.nodes.selectAll(".nodename").text(function(d) {return d.name;});
+		 this.nodes.selectAll("title").remove();
+		 this.nodes.selectAll("path").classed("selected", function(d) {return d.selected;})
+		    .style("stroke", function(d) {return (d.errors.hasError())?"#f00":"#ccc";})
+		    .append("title").text(function(d) {return d.errors.getMessage();});	        	
+		 this.linktext.selectAll("title").remove();
+		 this.edges.style("stroke", function(d) {return (d.errors.hasError())?"#f00":"#ccc";});
+		 this.linktext.append("title").text(function(d) {return d.errors.getMessage();});	        	
 		this.nodes.exit().remove();
     
 	if(PuroAppSettings.vocabComparisonEnabled) this.updateVocabList(puroControl);
@@ -538,12 +544,10 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	  		d3.select(this).classed("selected", true);
 	  		onClickFunction.call(null);
 	  		});
-	};
+	};	
 	
-	
-	
-	addButton("Move/Rename", 150, 50, 210, 350, BTypePath, function(){
-			puroControl.setTool(puroControl.TOOL.select);}, "#7dd");
+	//addButton("Move/Rename", 150, 50, 210, 350, BTypePath, function(){
+	//		puroControl.setTool(puroControl.TOOL.select);}, "#7dd");
 	addButton("<- Link ->", 110, 20, 210, 110, BTypePath, function(){
 			puroControl.setTool(puroControl.TOOL.link);});
 	addButton("<- instanceOf-Link ->", 170, 30, 210, 50, BTypePath, function(){

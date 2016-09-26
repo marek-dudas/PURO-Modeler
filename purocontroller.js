@@ -67,6 +67,7 @@ PuroController.prototype.newNode = function(node, location){
 	node.x = location[0];
 	node.y = location[1];
 	this.model.addNode(node);
+	this.model.validate();
 	this.view.updateView();
 };
 
@@ -90,8 +91,14 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 			if(this.linkStart != null  && node!=null) {
 				this.selectNode(null);
 				if(this.activeTool == this.TOOL.link) {
-					this.model.addLink(new BLink("",this.linkStart, node));
-					this.saveModel();
+					var link = new RelationLink("",this.linkStart, node);
+					if(link.start != null) {
+						this.model.addLink(link);
+						this.saveModel();
+					}
+					else {
+						alert("Can't create link between these entities in this direction.");
+					}
 				}
 				if(this.activeTool == this.TOOL.instanceOfLink) {
 					var link = new InstanceOfLink("new link",this.linkStart, node);
@@ -117,6 +124,7 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 				}
 				this.linkStart = null;
 				d3.select("#tooltip").text("");
+				this.model.validate();
 				this.view.updateView();
 			}
 			else {
@@ -132,11 +140,13 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 		if(node!=null && node instanceof BTerm) 
 		{
 			this.model.removeNode(node);
+			this.model.validate();
 			this.view.updateView();
 		}
 		if(node!=null && node instanceof BLink) 
 		{
 			this.model.removeLink(node);
+			this.model.validate();
 			this.view.updateView();
 		}
 	}
@@ -201,6 +211,7 @@ PuroController.prototype.nodeDblClick = function(node) {
 				unique = !this.model.labelExists(result);
 			    if(node.isValidLabel(result, unique)) {
 			      node.name = result;
+			      this.model.validate();
 			      this.view.updateView();
 			      validRename = true;}
 			    else alert('The name must be unique.');
