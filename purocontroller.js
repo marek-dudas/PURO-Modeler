@@ -8,6 +8,8 @@ function PuroController(model){
 	this.selectedNode = null;
 	this.store = new PuroLoader();
 	this.selectedVocabs = [];
+	this.currentModelId = null;
+	this.currentUser = null;
 }
 
 PuroController.prototype.startNodeDrag = function(node) {
@@ -74,15 +76,19 @@ PuroController.prototype.newNode = function(node, location){
 PuroController.prototype.canvasMouseDown = function(location, node){
 	if(this.activeTool === this.TOOL.createBType) {
 		this.newNode(new BType("new BType"), location);
+		this.activeTool = this.TOOL.select;
 	}
 	else if(this.activeTool === this.TOOL.createBValuation) {
 		this.newNode(new BValuation("new BValuation"), location);
+		this.activeTool = this.TOOL.select;
 	}
 	else if(this.activeTool === this.TOOL.createBObject) {
 		this.newNode(new BObject("new BObject"), location);
+		this.activeTool = this.TOOL.select;
 	}
 	else if(this.activeTool === this.TOOL.createBRelation) {
 		this.newNode(new BRelation("new BRelation"), location);
+		this.activeTool = this.TOOL.select;
 	}
 	else if(this.activeTool === this.TOOL.link
 		|| this.activeTool === this.TOOL.instanceOfLink
@@ -156,6 +162,11 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 			this.view.updateView();
 		//}
 	}
+	if(node==null) {
+		this.linkStart = null;
+		this.activeTool = this.TOOL.select;
+		this.view.updateView();
+	}
 };
 
 PuroController.prototype.selectNode = function(node, noDeselectFirst) {
@@ -171,7 +182,7 @@ PuroController.prototype.selectNode = function(node, noDeselectFirst) {
 	else {
 		this.selectedNode = null;
 	}
-	this.updateDisplayedModelingSelection();
+	if(PuroAppSettings.modelingStyleBoxEnabled) this.updateDisplayedModelingSelection();
 };
 
 PuroController.prototype.modelingStyleChanged = function(modelingStyle, checked) {
@@ -202,13 +213,16 @@ PuroController.prototype.updateDisplayedModelingSelection = function() {
 };
 
 PuroController.prototype.nodeDblClick = function(node) {
+		this.linkStart = null;
+		this.activeTool = this.TOOL.select;
 		do {
 		var unique = false;
 		var result = prompt('Change the name of the entity',node.name);
+		result = result.replace(/[^a-zA-Z0-9 ]/g, "");
 		var validRename = false;
 		if(result)
 			{
-				unique = !this.model.labelExists(result);
+				unique = true; //!this.model.labelExists(result);
 			    if(node.isValidLabel(result, unique)) {
 			      node.name = result;
 			      this.model.validate();
@@ -220,8 +234,14 @@ PuroController.prototype.nodeDblClick = function(node) {
 };
 
 PuroController.prototype.loadModel = function(id) {
+	 this.currentModelId = id;
 	 this.store.getOBMbyId(id, this);
 };
+
+PuroController.prototype.deleteModel = function(modelId) {
+	if(this.currentModelId && this.currentModelId == modelId) alert('This model is currently opened, you cannot delete it.');
+	else this.store.deleteModel(modelId, this.updateOBMs.bind(this));
+}
 
 PuroController.prototype.showAllVocabs = function() {
 		d3.select("#vocabs").selectAll("input").property("checked", true);
@@ -240,7 +260,7 @@ PuroController.prototype.loadModelFromJStore = function(obm) {
 	 this.showAllVocabs();
 	 
 	 //DEBUG
-	 this.getMappings();
+	 //this.getMappings();
 };
 
 PuroController.prototype.promptForModelName = function() {
@@ -252,9 +272,11 @@ PuroController.prototype.newModel = function() {
 			    if(result) {
 			      this.model = new PuroModel();
 			      this.model.name = result;
+			  	  this.model.inStore = false;
 			      //this.model.id = this.store.getNewId();
 			      this.view.setData(this.model);
-			      this.view.updateView();}
+			      this.view.updateView();
+			      this.saveModel();}
 };
 
 PuroController.prototype.saveModel = function() {
@@ -268,7 +290,12 @@ PuroController.prototype.saveModel = function() {
 	  //store = new dojox.data.CouchDBRestStore({target: couchdbUrl}); //"http://admin:c0d1988@protegeserver.cz/couchdb"});
   		
   		//store.put(this.model,null);
-  	if(this.model.name == "") this.model.name = this.promptForModelName();
+  	if(this.model.name == "") {
+  		this.model.name = this.promptForModelName();
+  		this.store.setAfterSaveAction(this.updateOBMs.bind(this));
+  	}
+  	else if(this.model.inStore == false) this.store.setAfterSaveAction(this.updateOBMs.bind(this));
+  	else this.store.setAfterSaveAction(null);
   	this.model.author = this.getCurrentUser();
  	this.store.saveModel(this.model);
  	//newItem(this.model,null);
@@ -282,7 +309,9 @@ PuroController.prototype.saveModel = function() {
 PuroController.prototype.saveModelAs = function() {
 	this.model.name = this.promptForModelName();
 	this.model.oldId = null;
+	this.model.inStore = false;
   	this.model.author = this.getCurrentUser();
+	this.store.setAfterSaveAction(this.updateOBMs.bind(this));
 	this.store.saveModel(this.model);
 };
 
@@ -384,8 +413,8 @@ PuroController.prototype.storeMappings = function() {
 
 PuroController.prototype.storeVocabs = function() {
 	for(var i=0; i<this.namespaces.length; i++) {
-		this.model.addVocab(this.namespaces[i].str);
-		this.selectedVocabs.push(this.namespaces[i].str);
+		this.model.addVocab(this.namespaces[i].namespace);
+		this.selectedVocabs.push(this.namespaces[i].namespace);
 	}
 }
 
@@ -418,24 +447,50 @@ PuroController.prototype.getTransformation = function() {
 	PuroRdfSerializer.getOFMVisualizationUrl(this.model, processTransformResponse);
 };
 
+PuroController.prototype.loadMorph = function() {
+	var user = this.getCurrentUser();
+	window.location.href = "OBOWLMorph?user="+user+"&pass="+this.pass+"&model="+this.currentModelId;
+};
+
+PuroController.prototype.loadEditor = function() {
+	var user = this.getCurrentUser();
+	window.location.href = "../?user="+user+"&pass="+(this.pass)+"&model="+this.currentModelId;	
+};
+
+PuroController.prototype.setUser = function(user, pass) {
+	this.currentUser = user;
+	this.pass = pass;
+};
+
 PuroController.prototype.getCurrentUser = function () {
-	if(document.getElementById("user")) this.currentUser = document.getElementById("user").value;
+	if(this.currentUser == null && document.getElementById("user")) {
+		this.currentUser = document.getElementById("user").value;
+		this.pass = document.getElementById("pass").value;
+	}
 	return this.currentUser;
 };
+
+PuroController.prototype.updateOBMs = function() {
+	this.getOBMs();
+	this.view.updateView();
+}
 
 PuroController.prototype.getOBMs = function() {
 	//return this.store.getOBMs(this.view);	
 	var control = this;
 	var user = this.getCurrentUser();
-	var pass = document.getElementById("pass").value;
+	var pass = this.pass;
 	$.get(couchLoginUrl+"?user="+user+"&pass="+pass, function(data) {
 		dojo.require("dojox.json.ref");
 		var response = dojox.json.ref.fromJson(data);
 		if(response.result) {
 			control.store.getOBMs(control.view, response.couchurl, user);
 			d3.select("#divLogin").html("Logged in as "+user);
+			d3.select("#divLogout").style("display", "inline");
 		}
 		else {
+			control.currentUser = null;
+			control.pass = null;
 			d3.select("#divLoginMessage").html("Login failed.")
 		}
 	})

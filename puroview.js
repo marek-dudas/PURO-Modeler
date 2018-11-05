@@ -80,6 +80,7 @@ function PuroView(width, height, viewingElement){
 	$(window).load(function () { thisView.updateSize(); });
 	
 	this.mappingChoices = null;
+	this.mouseInCanvas = false;
 };
 
 PuroView.prototype.updateSize = function() {
@@ -112,15 +113,25 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 	
 	this.createToolbox(toolBoxElement, puroControl);
 			
-	this.rootSvg.on("mousedown", function(){
+	this.rootSvg.on("click", function(){
 		puroControl.canvasMouseDown(d3.mouse(PuroEditor.view.svg.node()), null);
 	});
+
+	var view = this;
+	
+	this.rootSvg.on("mouseenter", function(){
+		view.mouseInCanvas = true;});
+	this.rootSvg.on("mouseleave", function(){
+		view.mouseInCanvas = false;});
 	
 	if(PuroAppSettings.vocabComparisonEnabled) this.decorateVocabControls(puroControl);
 	if(PuroAppSettings.obmToolboxEnabled) this.decorateEditorControls(puroControl);
+	else {
+		d3.select("#btnEdit").on("click", function(){puroControl.loadEditor();});
+		d3.select("#btnVocabs").on("click", function(){puroControl.getMappings();});
+	}
 	if(PuroAppSettings.modelingStyleBoxEnabled) this.decorateModelingControls(puroControl);
 
-	var view = this;
 	d3.select("#btnLayout").on("click", function(){
 		if(view.layoutRunning) {
 			view.layout.stop();
@@ -136,13 +147,17 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 	d3.select("#btnLoadObmList").on("click", function(){
 		view.updateOBMList(obmListTableElement);
 	})
+	d3.select("#btnLogout").on("click", function(){
+		PuroEditor.logout();
+	})
 };
 
 PuroView.prototype.decorateEditorControls = function(puroControl) {
 	d3.select("#btnNew").on("click", function(){puroControl.newModel();});
 	d3.select("#btnSave").on("click", function(){puroControl.saveModel();});
 	d3.select("#btnSaveAs").on("click", function(){puroControl.saveModelAs();});
-	d3.select("#btnTransform").on("click", function(){puroControl.transformModel();});	
+	d3.select("#btnTransform").on("click", function(){puroControl.transformModel();});
+	d3.select("#btnMorph").on("click", function(){puroControl.loadMorph();});
 };
 
 PuroView.prototype.decorateVocabControls = function(puroControl) {
@@ -171,6 +186,7 @@ PuroView.prototype.updateOBMList = function(listElement) {
 	
 PuroView.prototype.fillOBMList = function(obms) {
 	var table = d3.select("#"+this.obmListElement);
+	table.selectAll("tr").remove();
 	var ctrl = this.puroCtrl;
 	for(var i=0; i<obms.length; i++) {
 		//var obm = this.purobms[i].doc
@@ -182,7 +198,19 @@ PuroView.prototype.fillOBMList = function(obms) {
 		.attr("value", obms[i].name+" by "+obms[i].author)
 		.on("click", function(){
 			ctrl.loadModel(this.id);});
-		//tr.append("td").append("input").type("button").text(obms[i].id);
+		tr.append("td").attr("align", "right")
+		.append("input")
+		.classed("button", true)
+		.attr("modelid",obms[i]._id)
+		.attr("modelname", obms[i].name)
+		.attr("type", "button")
+		.attr("value", "x")
+		.on("click", function() {
+			var confirmation = true;
+			if(this.attributes.modelname) confirmation = confirm("Do you really want to delete model "+this.attributes.modelname.value+"?");
+			var idToDelete = this.attributes.modelid.value;
+			if(confirmation) ctrl.deleteModel(idToDelete);
+		});
 	}
 	this.updateSize();
 };
@@ -251,17 +279,30 @@ PuroView.prototype.setDraggedNode = function(node) {
 	d3.event.preventDefault(); // disable text dragging
 	
 	function mousemove() {
-		PuroEditor.view.dragSvg.style("left", d3.mouse(d3.select("body").node())[0]+"px").style("top", d3.mouse(d3.select("body").node())[1]+node.height+"px");
+		PuroEditor.view.dragSvg.style("left", d3.mouse(d3.select("body").node())[0]+"px").style("top", d3.mouse(d3.select("body").node())[1]+"px");
 	}
 	
 	function mouseup() {
-		  w.on("mousemove", null).on("mouseup", null);
-		  PuroEditor.view.dragSvg.remove();
-		PuroEditor.control.canvasMouseDown(d3.mouse(PuroEditor.view.svg.node()));
+		 w.on("mousemove", null).on("mouseup", null);
+		 PuroEditor.view.dragSvg.remove();
+		 var mousePos = d3.mouse(PuroEditor.view.viewingElement.node());
+		 if(mousePos[0]>0 && mousePos[0]<PuroEditor.view.width && mousePos[1]>0 && mousePos[1]<PuroEditor.view.height) PuroEditor.control.canvasMouseDown(d3.mouse(PuroEditor.view.svg.node()));
+
+		 PuroEditor.control.setTool(PuroEditor.control.TOOL.select);
 	}
 }
 
+PuroView.prototype.updateToolHighlights = function() {
+	for(var i=0; i<this.buttonsArray.length; i++) {
+		var button = this.buttonsArray[i];
+		button.classed("selected", false);
+		if(button.tool == this.puroCtrl.activeTool) button.classed("selected", true);
+	};
+}
+
 PuroView.prototype.updateView = function() {
+	
+	this.updateToolHighlights();
 	   
     var puroControl = this.puroCtrl;
     
@@ -278,7 +319,9 @@ PuroView.prototype.updateView = function() {
 		    
 	this.linktext = this.linktext.data(this.model.links, function(d) {return d.id;});
     var linktextEnter =this.linktext.enter().append("g").attr("class", "linklabelholder")
-	        .on("click", function(d){puroControl.canvasMouseDown(d3.mouse(this), d);})
+	        .on("mousedown", function(d){
+	        	puroControl.canvasMouseDown(d3.mouse(this), d);}
+	        )
      .on('dblclick', function(d){
 			     puroControl.nodeDblClick(d);
 			      var text = d3.select(this).select("text")[0][0];
@@ -333,6 +376,7 @@ PuroView.prototype.updateView = function() {
 	    //this.nodes.enter()
 	    var nodesEnter = this.nodes.enter().append("g")
 	        .on("click", function(d){
+		        d3.event.stopPropagation();
 	        	puroControl.canvasMouseDown(d3.mouse(this), d);
 	        	if(PuroAppSettings.modelingStyleBoxEnabled) d3.select("#nodeProps").style("left", (d3.event.clientX+30)+"px").style("top", (d3.event.clientY+30)+"px");
 	        	if(PuroAppSettings.mappingBoxEnabled) 
@@ -393,6 +437,7 @@ PuroView.prototype.updateView = function() {
 	if(PuroAppSettings.modelingStyleBoxEnabled) this.updateNodeModelingProps(puroControl);
         
     d3.select("#modelname").text(this.model.name);
+    d3.select("#spanModified").text(this.model.lastModified);
     
     if(this.layoutRunning) this.layout.start();
     this.tick();
@@ -463,6 +508,21 @@ PuroView.prototype.updateVocabList = function(puroControl) {
 }
 
 PuroView.prototype.drawVocabPaths = function() {
+	function configLodsightFrameShowing(mark, namespace) {
+		mark.on("mouseover", function(){
+			$.getJSON("http://localhost/lodsight-iframe/lodsight-graph-creator/get-visualization-url.php?uri="+namespace, null, function(response) {
+				d3.select('#lodsightFrame').attr('src', response.url+"&controls=false")
+					.style("display", "block");
+			});
+		})
+		.on("click", function(){
+			$.getJSON("http://localhost/lodsight-iframe/lodsight-graph-creator/get-visualization-url.php?uri="+namespace, null, function(response) {
+				window.open(response.url, '_blank');
+			});
+		});
+	}
+	
+	
 	this.svg.selectAll(".vocabPath").remove();
 	//var colors = ["#f00","#0c0","#00d","#ff0","#0ff"];
 	//if(! this.layoutRunning) {
@@ -478,6 +538,10 @@ PuroView.prototype.drawVocabPaths = function() {
 					this.svg.append("path").classed("vocabPath", true).attr('filter', "url(#blur-filter)")
 						.attr("d", vocabPath(paths[j])).attr("stroke", this.colors(i)).attr("fill", "none").attr("stroke-width",vocabPathWidth);
 					var mark = this.svg.append("g").classed("vocabPath", true);
+					var namespace = this.model.vocabs[i];
+					
+					configLodsightFrameShowing(mark, namespace);
+					
 					var text = this.svg.append("text").classed("vocabPath", true).attr("x",labelPos.x).attr("y",labelPos.y).attr("fill", this.colors(i));
 					text.text(this.model.vocabs[i]);
 					var bbox = text.node().getBBox();
@@ -541,19 +605,26 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	  		});        	
 	  	gButton.on("mousedown", function(){
 	  		PuroEditor.view.toolSvg.selectAll("g").classed("selected", false); 
-	  		d3.select(this).classed("selected", true);
+	  		//d3.select(this).classed("selected", true);
 	  		onClickFunction.call(null);
 	  		});
+	  	return gButton;
 	};	
+	
+	this.buttons = {};
+	this.buttonsArray = [];
 	
 	//addButton("Move/Rename", 150, 50, 210, 350, BTypePath, function(){
 	//		puroControl.setTool(puroControl.TOOL.select);}, "#7dd");
-	addButton("<- Link ->", 110, 20, 210, 110, BTypePath, function(){
+	this.buttons.link = addButton("<- Link ->", 110, 20, 210, 110, BTypePath, function(){
 			puroControl.setTool(puroControl.TOOL.link);});
-	addButton("<- instanceOf-Link ->", 170, 30, 210, 50, BTypePath, function(){
+	this.buttons.link.tool = puroControl.TOOL.link;
+	this.buttons.instanceOf = addButton("<- instanceOf-Link ->", 170, 30, 210, 50, BTypePath, function(){
 			puroControl.setTool(puroControl.TOOL.instanceOfLink);});
-	addButton("<- subTypeOf-Link ->", 170, 30, 210, 170, BTypePath, function(){
+	this.buttons.instanceOf.tool = puroControl.TOOL.instanceOfLink;
+	this.buttons.subTypeOf = addButton("<- subTypeOf-Link ->", 170, 30, 210, 170, BTypePath, function(){
 			puroControl.setTool(puroControl.TOOL.subtypeOfLink);});
+	this.buttons.subTypeOf.tool = puroControl.TOOL.subtypeOfLink;
 	addButton("BType", 100, 50, 70, 30, BTypePath, function(){
 			puroControl.setTool(puroControl.TOOL.createBType);});
 	addButton("BObject", 100, 30, 70, 110, BObjectPath, function(){
@@ -562,8 +633,13 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 			puroControl.setTool(puroControl.TOOL.createBRelation);});
 	addButton("BValuation", 120, 30, 70, 290, BValuationPath, function(){
 			puroControl.setTool(puroControl.TOOL.createBValuation);});
-	addButton("Delete", 80, 30, 80, 400, BValuationPath, function(){
+	this.buttons.del = addButton("Delete", 80, 30, 80, 400, BValuationPath, function(){
 			puroControl.setTool(puroControl.TOOL.del);}, "#f77");
+	this.buttons.del.tool = puroControl.TOOL.del;
+	this.buttonsArray.push(this.buttons.link);
+	this.buttonsArray.push(this.buttons.instanceOf);
+	this.buttonsArray.push(this.buttons.subTypeOf);
+	this.buttonsArray.push(this.buttons.del);
 };
 
 function BTypePath(width, height) {

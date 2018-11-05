@@ -43,9 +43,9 @@
 	if($debug)
 	{
 		//echo "copying the model to protegeserver <br>";
-		$webUrl = "http://protegeserver.cz/puromodeler-v3.5/server/";
-		$debug_save_url = "http://protegeserver.cz/puromodeler-v3.5/server/savetempmodel.php";
-		$patternsUrl = "http://protegeserver.cz/puromodeler-v3.5/OBOWLMorph/patterns";
+		$webUrl = "http://protegeserver.cz/purom/server/";
+		$debug_save_url = "http://protegeserver.cz/purom/server/savetempmodel.php";
+		$patternsUrl = "http://protegeserver.cz/purom/OBOWLMorph/patterns";
 		$ch = curl_init();   
 	    curl_setopt($ch,CURLOPT_URL,$debug_save_url);
 	    curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
@@ -72,8 +72,15 @@
     		."transformation-pattern=$patternsUrl/objectManifestation.txt&"
     		."transformation-pattern=$patternsUrl/subType_to_objProp.txt&"
     		."transformation-pattern=$patternsUrl/subType_to_subClass.txt&"
+    		."transformation-pattern=$patternsUrl/cancel_multidomain.txt&"
+    		."transformation-pattern=$patternsUrl/cancel_multirange.txt&"
     		."transformation-pattern=$patternsUrl/fragment_annot.txt";
-	
+    
+    $purom_file = fopen("transform-debug.txt", "w");
+    //$rdfInput = file_get_contents('php://input');
+    fwrite($purom_file, $transformation_data);
+    fclose($purom_file);
+    
 	$ch = curl_init();
 	// set url
 	curl_setopt($ch, CURLOPT_URL, $transformation_url);
@@ -108,7 +115,7 @@
 		if($debug)
 		{
 			//echo "copying the results to protegeserver <br>";
-			$debug_save_url = "http://protegeserver.cz/puromodeler-v3.5/server/savetempmodel.php";
+			$debug_save_url = "http://protegeserver.cz/purom/server/savetempmodel.php";
 			$ch = curl_init();
 			curl_setopt($ch,CURLOPT_URL,$debug_save_url);
 			curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);

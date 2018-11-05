@@ -98,8 +98,8 @@ PuroRdfSerializer.initData = function(targetWindow){
 	this.data = $.rdf.databank()
 		.prefix('puro', 'http://lod2-dev.vse.cz/ontology/puro#')
 		.prefix('pm', 'http://lod2-dev.vse.cz/data/puromodels#')
-		.prefix('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
-		.prefix('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+		.prefix('rdfs', 'http://www.w3.org/2000/01/rdf-schema#');
+		//.prefix('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
 };
 
 PuroRdfSerializer.upload = function(targetWindow) {

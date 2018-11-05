@@ -12,7 +12,9 @@ var couchLoginUrl = serverRoot+"server/login.php";
 
 var couchProxyUrl = serverRoot+"server/couchProxy.php";
 
-var vowlUrl = "http://vowl.visualdataweb.org/webvowl/index.html#iri=";
+var sessionUrl = serverRoot+"server/session.php";
+
+var vowlUrl = "http://rknown.vserver.cz:8080/webvowl_1.0.4/#iri=";
 
 var vocabsDiv = "vocabs";
 
@@ -31,7 +33,7 @@ var PuroAppSettings = {
 		mappingBoxEnabled: false,
 		vocabVisualizationEnabled: true,
 		debug: true,
-		loadDebugJson: false,
+		loadDebugJson: true,
 		setEditorFunctionality: function() {
 			this.vocabComparisonEnabled = true;
 			this.obmToolboxEnabled = true;
@@ -50,6 +52,8 @@ var PuroAppSettings = {
 
 if(PuroAppSettings.debug) {
 	
+	serverRoot = "http://localhost/puromodeler";
+	
 	couchdbUrl = "http://localhost/couchdb/puromodels2/"; //"http://admin:c0d1988@protegeserver.cz/couchdb/puromodels"//"http://localhost/couchdb/puromodels2/";//"http://admin:c0d1988@lod2-dev.vse.cz/couchdb/puromodels2/"; //"http://localhost/couchdb/puromodels/""http://user:pasword@protegeserver.cz/couchdb";
 
 	transformServerUrl = "http://localhost/puromodeler/server/purom-transform.php";  //"http://localhost/PUROM-server/purom-transform.php""http://lod2-dev.vse.cz/puromodeler/server/purom-transform.php";
@@ -60,7 +64,9 @@ if(PuroAppSettings.debug) {
 
 	couchLoginUrl = "http://localhost/puromodeler/server/login.php";
 
-	vowlUrl = "http://vowl.visualdataweb.org/webvowl/index.html#iri=";
+	vowlUrl = "http://rknown.vserver.cz:8080/webvowl_1.0.4/#iri=";
 	
 	couchProxyUrl = "http://localhost/puromodeler/server/couchProxy.php";
+	
+	sessionUrl = "http://localhost/puromodeler/server/session.php";
 }

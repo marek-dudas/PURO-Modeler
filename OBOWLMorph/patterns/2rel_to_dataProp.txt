@@ -29,7 +29,7 @@ WHERE
   ?r a puro:BType;
    rdfs:label ?r_label .  
    
-   FILTER ( EXISTS {?p puro:modelingStyle puro:objectPropAll})       
+   FILTER ( EXISTS {?p puro:modelingStyle puro:dataProp})       
    
   OPTIONAL { 
     ?r puro:subTypeOf ?r_uptype1 . ?r_uptype1 rdfs:label ?r_uptype1_label . 

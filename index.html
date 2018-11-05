@@ -27,7 +27,7 @@
 	  	<script src="puroview.js"></script>
 	  	<script src="puroEditor.js"></script>
 	  	
-		 <script src='/puromodeler/dojo/dojo.js' djConfig="isDebug: true, parseOnLoad: true"></script>
+		 <script src='dojo/dojo.js' djConfig="isDebug: true, parseOnLoad: true"></script>
 		 
 		<!-- <script src='/puromodeler/ojox/data/XmlStore.js'></script> -->
 	  	
@@ -159,13 +159,15 @@
 	        	<div style="font: 36px Helvetica Neue, Helvetica, Arial, sans-serif; color:#B60000;">PURO Modeler</div>
             <div style="font: Helvetica Neue, Helvetica, Arial, sans-serif;"><a href="about.html">About this app</a> <a href="help.html" target="_blank">Help</a></div>
 	        	<br/>
-	        	<div id="divLogin">
+	        	<div id="divLogin" style="display:inline">
 	        		User: <input type="text" id="user" style="display:inline;width:70px" > Pass: 
 	        		<input type="password" id="pass" style="display:inline;width:70px" > 
 		        	<input type="button" id="btnLoadObmList" value="Login">
 		        	<div id="divLoginMessage"></div>
 	        	</div>
-	        	<div style="display:inline " class="toolheading">Model: </div><div style="display:inline" id="modelname" class="toolheading"> </div>
+	        	<div id="divLogout" style="display:none"><input type="button" value="Logout" id="btnLogout"></div>
+	        	<p></p>
+	        	<div class="toolheading">Model: <span style="display:inline" id="modelname" class="toolheading"> </span></div>
 	        	<br/>
 	        	<table >
 	        		<tr>
@@ -174,7 +176,7 @@
 	        			<td><input type="button" value="Save as..." id="btnSaveAs" class="button" title="Save model under new name"></td>
 	        			<td><a href="#loadlist" class="button" title="Load an existing model.">Load</a></td>
 	        			<!--  <td><input type="button" value="Create OWL" id="btnTransform" class="button" title="Generates OWL representations of the OBM."></td> -->
-	        			<td><a href="OBOWLMorph" class="button" title="Switch to the OBM to OWL transformation app.">OWL Generation</a>
+	        			<td><input type="button" value="Create Ontology" id="btnMorph" class="button" title="Switch to the OBM to OWL transformation app.">
 	        		</tr>
 	        	</table>
 	        	<div style="height:450px" id="tools"  class="roundbox"></div>
@@ -196,19 +198,23 @@
 		        			padding:5px"  class="roundbox">
 		        	<a id="loadlist" class="toolheading">Load an Existing Model:</a>
 		        	
-		        	<table id="obmTable" >
+		        	<table id="obmTable" width="100%" >
 		        		
 		        	</table>
 		        </div>
 	        </div>
 	        <div style="float:right; width:1100px; height:900px" id="canvas" class="roundboxNoShadow">
 	        </div>	 
-	        <div style="float:right"><input type="button" value="Start/Stop Auto-Layout" id="btnLayout"  class="button"></div>
+	        <div style="float:right; display:flex;">
+				<span>Model last modified on:</span> <span id="spanModified" style="margin-left:10px; margin-right:100px"></span>
+				<input type="button" value="Start/Stop Auto-Layout" id="btnLayout"  class="button">
+			</div>
 	               
         </div>
         <table id="debugtable">
         	
         </table>
+        
     </body>   
     <script src="bindEditor.js"></script>
 </html>

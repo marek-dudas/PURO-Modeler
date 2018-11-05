@@ -84,6 +84,22 @@
 			$this->put_doc($docId, $doc_data);
 		}
 		
+		function delete_doc($docId, $rev) {
+			$ch = curl_init();
+			
+			curl_setopt($ch, CURLOPT_HEADER, false);
+			curl_setopt($ch,CURLOPT_URL,$this->couchUrl.$docId."?rev=".$rev);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json',
+			'Accept: application/javascript, application/json'));
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+			$output=curl_exec($ch);
+			curl_close($ch);
+			//fclose($docdata_file);
+			//unlink($docdata_filename);
+			echo $output;
+		}
+		
 		function go() {				
 			$action = $_REQUEST["do"];
 		
@@ -92,6 +108,7 @@
 				case "getdoc": $this->get_doc($_REQUEST["docId"]); break;
 				case "savedoc": $this->read_and_put_doc(); break;
 				case "adddoc": $this->read_and_add_doc(); break;
+				case "deldoc": $this->delete_doc($_REQUEST["docId"], $_REQUEST["rev"]); break;
 			}
 		}
 	}

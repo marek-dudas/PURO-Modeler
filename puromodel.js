@@ -19,6 +19,9 @@ var MappingNode = {
 			this.uri = uri;
 			this.width = 100;
 			this.height = 50;
+			
+			this.errors = Object.create(SyntaxError);
+			this.errors.init();
 		},
 		getType: function() {
 			return "mapping";
@@ -117,7 +120,7 @@ BTerm.prototype.initMappings = function() {
 
 BTerm.prototype.addMapping = function(mapping) {
 	this.mappings.push(mapping);
-	this.addVocab(mapping.getPrefixedNamespace());
+	this.addVocab(mapping.namespace); //.getPrefixedNamespace());
 };
 
 BTerm.prototype.getType = function() {
@@ -224,8 +227,10 @@ BLink.prototype.connectedTo = function(node) {
 };
 
 function RelationLink(name, start, end) {
-	if(( ((start instanceof BType) || (start instanceof BObject)) && ((end instanceof BValuation) || (end instanceof BRelation)))
-			|| ( (start instanceof BRelation) && ( (end instanceof BValuation) || (end instanceof BObject) || (end instanceof BType) ))) 
+	if(
+			( ((start instanceof BType) || (start instanceof BObject)) && ((end instanceof BValuation) || (end instanceof BRelation)))
+			|| ( (start instanceof BRelation) && ( (end instanceof BValuation) || (end instanceof BObject) || (end instanceof BType) ))
+			) 
 		return new BLink("", start, end);
 	else return null;
 }
@@ -496,13 +501,14 @@ PuroModel.prototype.validate = function() {
 		this.links[i].errors.init();
 	}
 	for(var i=0; i<this.nodes.length; i++) {
-		if(this.nodes[i] instanceof BValuation) {
+		var node = this.nodes[i];
+		if(node instanceof BValuation) {
 			var linked = this.linksLinkedToNode(this.nodes[i]);
 			for(var l=0; l<linked.length; l++) {
 				if(linked[l].name == "") linked[l].errors.setError(purostr.errorLabelMiss);
 			}
 		}
-		if(this.nodes[i] instanceof BRelation) {
+		if(node instanceof BRelation) {
 			var linked = this.linksLinkedToNode(this.nodes[i]);
 			if(linked.length == 2) {
 				if(linked[0].start == node && linked[1].end == node || linked[0].end == node && linked[1].start == node) {
@@ -515,17 +521,19 @@ PuroModel.prototype.validate = function() {
 			}
 			else {
 				for(var l=0; l<linked.length; l++) {
-					if(linked[l].name == "") linked[l].errors.setError(purostr.errorLabelMiss);
+					// DEBUG: incoming link intentionally not checked, turnef off for experiment
+					if(linked[l].name == "" && linked[l].end !== node) linked[l].errors.setError(purostr.errorLabelMiss);
 				}
 			}
 		}
-		if(this.nodes[i] instanceof BObject) {
+		if(node instanceof BObject) {
 			var linked = this.linksLinkedToNode(this.nodes[i]);
 			var hasType = false;
 			for(var l=0; l<linked.length; l++) {
 				if(linked[l] instanceof InstanceOfLink) hasType = true;
 			}
-			if(!hasType) this.nodes[i].errors.setError(purostr.errorType);
+			// DEBUG turned off for experiment
+			// if(!hasType) this.nodes[i].errors.setError(purostr.errorType);
 		}
 	}
 }

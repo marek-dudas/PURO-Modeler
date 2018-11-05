@@ -17,11 +17,14 @@
 			}
 		}
 	}
+	session_start();
 	
 	$response = new Response(0, "");
 	if(array_key_exists($_REQUEST["user"], $users)) {
 		if($_REQUEST["pass"]==$users[$_REQUEST["user"]]) {
 			$response = new Response(1, $couchUrl);
+			$_SESSION["user"] = $_REQUEST["user"];
+			$_SESSION["pass"] = $_REQUEST["pass"];
 		}
 	}
 	echo json_encode($response);

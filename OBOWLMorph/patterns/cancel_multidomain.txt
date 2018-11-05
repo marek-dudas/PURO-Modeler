@@ -1,0 +1,26 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX puro: <http://lod2-dev.vse.cz/ontology/puro#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+DELETE
+{        
+  GRAPH <http://owlfragmentA> {
+    ?property rdfs:domain ?domain .
+  }     
+}
+WHERE
+{ 
+	GRAPH <http://owlfragmentA> {
+	  ?property rdfs:domain ?domain .
+	  {
+	    SELECT ?property (COUNT(DISTINCT ?d) as ?domainCount) WHERE {
+	      GRAPH <http://owlfragmentA> {
+	      	?property rdfs:domain ?d .
+	      }
+	    } GROUPBY ?property
+	  }
+	  FILTER (?domainCount > 1)
+	}
+}

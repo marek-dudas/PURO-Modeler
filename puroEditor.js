@@ -26,6 +26,29 @@ var PuroEditor = {
 	loadModelFromUrl: function() {
 		var modelId = gup('model');
 		if(modelId!=null) this.control.loadModel(modelId);
+	},
+	
+	setUserAndLoad: function(data) {
+		if(data.validSession) {
+			  this.control.setUser(data.user, data.pass);
+			  this.view.updateOBMList(obmListTableElement);
+		  }
+	},
+  
+  loginUserFromUrl: function() {
+	  var user = gup('user');
+	  var pass = gup('pass');
+	  if(user!=null && pass!=null) {
+		  this.control.setUser(user, pass);
+		  this.view.updateOBMList(obmListTableElement);
+	  }
+	  else {
+		  $.get( sessionUrl, this.setUserAndLoad.bind(this), "json" );
+	  }
+  },
+	
+	logout: function() {
+		$.get(sessionUrl+"?logout=1", function() {window.location.href = serverRoot;});
 	}
 }
 

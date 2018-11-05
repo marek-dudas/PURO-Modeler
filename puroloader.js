@@ -24,6 +24,11 @@ var CouchProxy = {
 		    type : 'POST',
 		    success: callback
 		});
+	},
+	deleteModel: function(modelId, callback) {
+		this.getModel(modelId, function(data) {
+			$.get(couchProxyUrl+"?do=deldoc&docId="+modelId+"&rev="+data._rev, "", callback, "json");
+		});		
 	}
 };
 
@@ -33,6 +38,7 @@ function PuroLoader() {
 	//require(["dojo/store/JsonRest"], function(JsonRest){
 	//	  	thisloader.store = new JsonRest({ target: couchdbUrl });});
 	this.saveAttempts = 0;
+	this.afterSave = null;
 };
 
 /*
@@ -41,6 +47,10 @@ PuroLoader.prototype.addModel = function(model) {
 	//this.store.save(null);
 	this.store.add(model, {id:model.id});
 };*/
+
+PuroLoader.prototype.setAfterSaveAction = function(action) {
+	this.afterSave = action;
+};
 
 PuroLoader.prototype.resetAttemptCounter = function() {
 	this.saveAttempts = 0;
@@ -87,6 +97,8 @@ PuroLoader.prototype.saveRevisionId = function(result){
 	this.model._rev = resultObj.rev;
 	this.model.inStore = true;
 	this.model.oldId = resultObj.id;
+	PuroEditor.control.currentModelId = resultObj.id;
+	if(this.afterSave != null) this.afterSave();
 }
 
 PuroLoader.prototype.getRandomInt = function(){
@@ -112,6 +124,10 @@ PuroLoader.prototype.getNewId = function(){
 PuroLoader.prototype.deserialize = function(obm) {
 	return dojox.json.ref.resolveJson(obm);
 };
+
+PuroLoader.prototype.deleteModel = function(modelId,callback) {
+	CouchProxy.deleteModel(modelId, callback);
+}
 
 PuroLoader.prototype.getOBMs = function(puroview, url, user) {
 	//var result = this.store.fetch({sort: [{attribute: "name"}]}).results; //{sort: [{attribute: "name"}]}
@@ -157,6 +173,7 @@ PuroLoader.prototype.getOBMbyId = function(id, controller) {
 		rebuiltModel.inStore =true;
 		rebuiltModel.oldId = obm._id;
 		rebuiltModel._rev = obm._rev;
+		rebuiltModel.lastModified = new Date(obm.modified);
 		controller.loadModelFromJStore(rebuiltModel);
 	});
 	
