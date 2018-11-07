@@ -1,0 +1,20 @@
+body {
+    display: flex;
+    height: 100vh;
+    padding: 0px;
+    margin: 0px;
+}
+
+.mdc-drawer-app-content {
+    flex: auto;
+    overflow: hidden;
+}
+
+.main-content {
+    overflow: hidden;
+    height: 100%;
+}
+
+.app-bar {
+    position: absolute;
+}

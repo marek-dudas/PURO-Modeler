@@ -50,6 +50,7 @@ function PuroView(width, height, viewingElement){
 	this.nodes = this.svg.append("svg:g").selectAll("g");
 	this.edges = this.svg.append("svg:g").selectAll("line");
 	this.linktext = this.svg.append("svg:g").selectAll("g.linklabelholder");
+	this.creationLink = null;
 	
 	if(PuroAppSettings.vocabComparisonEnabled) {
 		this.vocabsDiv = d3.select("#"+vocabsDiv);
@@ -83,10 +84,150 @@ function PuroView(width, height, viewingElement){
 	this.mouseInCanvas = false;
 };
 
+function CreationLink (inSvg) {
+
+    inSvg.append('svg:defs').append('svg:marker')
+        .attr('id', 'thick-arrow')
+        //.attr('viewBox', '0 -5 10 10')
+        .attr('refX', 9.5)
+        .attr('refY', 6)
+        .attr('markerWidth', 26)
+        .attr('markerHeight', 26)
+        .attr('orient', 'auto')
+        .append('svg:path')
+        //.attr('d', 'M0,-5L10,0L0,5')
+        .attr('d', 'M2,2 L2,24 L24,13Z')
+        .style("fill", "#f00");
+
+	// var link = inSvg.append("line")
+     //    .style("stroke", "#f00")
+     //    .style("stroke-width", 5)
+     //    .style('marker-end', "url(#thick-arrow)")
+	// 	.style('visibility', 'hidden');
+
+    var link = inSvg.append("path")
+        .style("stroke", "#000")
+		.attr("fill", "#f00")
+        .style("stroke-width", 2)
+        .style('visibility', 'hidden');
+
+
+	var ray = {start: {}, end: {}};
+	return {
+        render: function () {
+            // link.attr("x1", this.start.x)
+            //     .attr("y1", this.start.y)
+            //     .attr("x2", this.end.x)
+            //     .attr("y2", this.end.y)
+        		// .style('visibility', 'visible');
+
+            // var length = pointDistance(new Point(0, 0), thi);
+            // var normalized = Point(this.x / length, this.y = this.y / length);
+			var a = new Point(this.end.x, this.end.y);
+			var l = a.plus(this.getReversedVec().multiply(30));
+            var b = l.plus(this.getLineNormal().multiply(15));
+            var c = l.plus(this.getLineNormal().multiply(-15));
+            var s = new Point(this.start.x, this.start.y);
+			link.attr("d", "M"+a.str()+"L"+b.str()+"L"+l.str()+"L"+s.str()+"L"+l.str()+"L"+c.str()+"Z");
+			link.style('visibility', 'visible');
+        },
+        getLineVec: function () {
+            var lineVec = new Point();
+            lineVec.x = this.end.x - this.start.x;
+            lineVec.y = this.end.y - this.start.y;
+            return lineVec;
+        },
+		getReversedVec: function() {
+            var lineVec = new Point();
+            lineVec.x = this.start.x - this.end.x;
+            lineVec.y = this.start.y - this.end.y;
+            var dist = pointDistance(new Point(0, 0), lineVec);
+            return new Point(lineVec.x/dist, lineVec.y/dist);
+		},
+        getLineNormal: function () {
+            var lineVec = this.getLineVec();
+            var dist = pointDistance(new Point(0, 0), lineVec);
+            return new Point(-lineVec.y/dist, lineVec.x/dist);
+        },
+		countStart: function () {
+        	this.start = this.startNode.linkIntersection(ray, ray.end);
+		},
+		getSvg: function () {
+			return link;
+		},
+		setStartNode: function (fromNode, otherNodes) {
+			ray.start = fromNode;
+			this.startNode = fromNode;
+			this.otherNodes = otherNodes;
+            this.end = {};
+            this.dragging = false;
+			ray.end.x = this.end.x = fromNode.x + 70;
+			ray.end.y = this.end.y = fromNode.y - 70;
+            this.endNode = null;
+			this.countStart();
+			this.render();
+		},
+		setEnd: function (pos) {
+			this.end = ray.end = pos;
+			this.endNode = null;
+			this.countStart();
+			this.render();
+		},
+		stickToNode:  function (toNode) {
+        	ray.end = toNode;
+			this.end = toNode.linkIntersection(ray, this.startNode);
+			this.endNode = toNode;
+			this.countStart();
+			this.render();
+		},
+		hide: function () {
+        	this.dragging = false;
+        	link.style('visibility', 'hidden');
+		},
+		startDrag: function () {
+        	this.dragging = true;
+		}
+	}
+}
+
+PuroView.prototype.showCreationLink = function (fromNode) {
+	var otherNodes = this.model.nodes.slice(0);
+	otherNodes.splice(otherNodes.indexOf(fromNode),1);
+	if (!this.creationLink) {
+		this.creationLink = CreationLink(this.svg);
+		var puroView = this;
+        this.creationLink.getSvg().on("mousedown", function () {
+            d3.event.stopPropagation();
+        	puroView.creationLink.startDrag();
+        	puroView.rootSvg.on("mousemove", function() {
+        		var location = d3.mouse(puroView.rootSvg.node());
+        		var mousePoint = {x: location[0], y: location[1]};
+        		var nearestNode = nearPoint(mousePoint, puroView.creationLink.otherNodes);
+        		if (nearestNode && pointDistance(mousePoint, nearestNode) < 150) puroView.creationLink.stickToNode(nearestNode);
+        		else puroView.creationLink.setEnd(mousePoint);
+            });
+        	puroView.rootSvg.on("mouseup", function() {
+        		if (puroView.creationLink.endNode) puroView.puroCtrl.creationLinkMouseUp(puroView.creationLink);
+        		else puroView.creationLink.hide();
+        		puroView.rootSvg.on("mouseup", null);
+        		puroView.rootSvg.on("mousemove", null);
+			});
+		});
+    }
+	this.creationLink.setStartNode(fromNode, otherNodes);
+};
+
 PuroView.prototype.updateSize = function() {
-	var currentSize = this.viewingElement.node().getBoundingClientRect();
-	this.rootSvg.attr("width", currentSize.width - 12).attr("height", currentSize.height - 12);
-	this.layout.size([currentSize.width-12, currentSize.height-12]);
+	//var currentSize = this.viewingElement.node().getBoundingClientRect();
+	var canvasRect = $('#canvas')[0].getBoundingClientRect();
+    var currentSize = {
+    	height: $(window).height() - canvasRect.top,
+		width: canvasRect.width + 12
+    };
+	this.rootSvg.attr("width", currentSize.width).attr("height", currentSize.height); // -12
+	this.layout.size([currentSize.width, currentSize.height]);
+	this.width = currentSize.width;
+	this.height = currentSize.height;
 };
 
 PuroView.prototype.startLayout = function() {
@@ -253,7 +394,7 @@ PuroView.prototype.tick = function() {
 
 PuroView.prototype.setDraggedNode = function(node) {
 	
-	this.dragSvg = d3.select("body").append("svg").style("position", "absolute")
+	this.dragSvg = d3.select("#canvas").append("svg").style("position", "absolute")
 				.style("z-index", 1000)
 				.attr("overflow", "visible")
 				.attr("width", node.width)
@@ -355,6 +496,7 @@ PuroView.prototype.updateView = function() {
 
 	    function dragstart(d, i) {
 	        view.layout.stop(); // stops the force auto positioning before you start dragging
+			view.creationLink.hide();
 	        d3.event.sourceEvent.stopPropagation();
 	    }
 	
@@ -393,7 +535,10 @@ PuroView.prototype.updateView = function() {
 			     puroControl.nodeDblClick(d);
 			      var text = d3.select(this).select("text")[0][0];
     			  text.selectSubString(0,0);
-    			})    			
+    			})
+			.on('mouseover', function(d) {
+				if (!view.creationLink || !view.creationLink.dragging) view.showCreationLink(d);
+			})
 	        .call(node_drag)
 	        .classed("node",true)
 	        .classed("mapping",function(d){return d.getType()=="mapping"});

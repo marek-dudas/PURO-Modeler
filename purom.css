@@ -1,0 +1,76 @@
+text {
+    font: 16px Helvetica Neue, Helvetica, Arial, sans-serif;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+circle {
+    fill: #ccc;
+}
+
+.node:hover circle {
+    fill: #FFA500;
+}
+
+.node path {
+    fill: #FFEECA;
+    cursor: pointer;
+    stroke: #ccc;
+    stroke-width: 1px;
+}
+
+path.selected {
+    fill: #FFC125 !important;
+}
+
+.selected path {
+    fill: #FFC125 !important;
+}
+
+.node path:hover {
+    fill: #FFA500;
+}
+
+.linklabelholder path {
+    opacity: 0.0;
+}
+
+.linklabelholder text {
+    font-size: 14;
+    fill: #777777
+}
+
+.typelabel text {
+    fill: #cccccc;
+}
+
+text.vocabPath {
+    font-size: 14;
+    font-weight: bold;
+}
+
+.vocabPath rect {
+    stroke-width:1;
+    stroke: #000000;
+}
+
+.toolheading {
+    font: 14px Helvetica Neue, Helvetica, Arial, sans-serif;
+    color: grey;
+    font-weight: bold;
+}
+
+.toolbox {
+    width: 330px;
+    height: 450px;
+    position: absolute;
+    right: 10px;
+    top: 70px;
+    background-color: white;
+}
+
+.canvas {
+    margin: 0px;
+    padding: 0px;
+    background-color: ghostwhite;
+}

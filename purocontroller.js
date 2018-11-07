@@ -169,6 +169,10 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 	}
 };
 
+PuroController.prototype.creationLinkMouseUp = function (creationLink) {
+
+};
+
 PuroController.prototype.selectNode = function(node, noDeselectFirst) {
 	if(!noDeselectFirst || node == null) {
 		for(var i=0; i<this.model.nodes.length; i++){
@@ -731,7 +735,7 @@ function ellipseLineIntersection(a,b,x0,y0,c,d) {
 }
 
 function nearPoint(from, points) {
-	if(points == null) return null;
+	if(points == null || points.length == 0) return null;
 	var minDist = Number.MAX_VALUE;
 	var minIndex = 0;
 	for(var i = 0, l = points.length; i<l; i++) {
@@ -813,6 +817,18 @@ function Point(x,y) {
 	this.x = x;
 	this.y = y;
 }
+
+Point.prototype.plus = function (point) {
+	return new Point(this.x + point.x, this.y + point.y);
+};
+
+Point.prototype.multiply = function (coef) {
+	return new Point(this.x * coef, this.y * coef);
+};
+
+Point.prototype.str = function () {
+	return this.x+","+this.y;
+};
 
 function Line(start, end) {
 	this.start = start;
