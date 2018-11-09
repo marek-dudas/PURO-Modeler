@@ -94,6 +94,12 @@ function BValuation(name) {
 	this.puroTerm = puroOntology.Bvaluation;
 }
 
+function BAttribute(name) {
+    BTerm.call(this,name);
+    this.type=purostr.Battribute; //"B-valuation";
+    this.puroTerm = puroOntology.Battribute;
+}
+
 function BRelation(name) {
 	BTerm.call(this,name);
 	this.type=purostr.Brelation; //"B-relation";
@@ -104,11 +110,13 @@ BType.prototype = Object.create(BTerm.prototype);
 BObject.prototype = Object.create(BTerm.prototype);
 BValuation.prototype = Object.create(BTerm.prototype);
 BRelation.prototype = Object.create(BTerm.prototype);
+BAttribute.prototype = Object.create(BTerm.prototype);
 
 BType.prototype.constructor = BType;
 BObject.prototype.constructor = BObject;
 BValuation.prototype.constructor = BValuation;
 BRelation.prototype.constructor = BRelation;
+BAttribute.prototype.constructor = BAttribute;
 
 BTerm.prototype.initMappings = function() {
 	this.mappings = [];
@@ -226,30 +234,37 @@ BLink.prototype.connectedTo = function(node) {
 	else return false;
 };
 
+function DisjointLink(name, start, end) {
+	BLink.call(this, purostr.disjoint, start, end);
+}
+
 function RelationLink(name, start, end) {
-	if(
-			( ((start instanceof BType) || (start instanceof BObject)) && ((end instanceof BValuation) || (end instanceof BRelation)))
-			|| ( (start instanceof BRelation) && ( (end instanceof BValuation) || (end instanceof BObject) || (end instanceof BType) ))
-			) 
-		return new BLink("", start, end);
-	else return null;
+	// if(
+	// 		( ((start instanceof BType) || (start instanceof BObject)) && ((end instanceof BValuation) || (end instanceof BRelation)))
+	// 		|| ( (start instanceof BRelation) && ( (end instanceof BValuation) || (end instanceof BObject) || (end instanceof BType) ))
+	// 		)
+	//
+	// else return null;
+    return new BLink("", start, end);
 }
 
 function InstanceOfLink(name, start, end) {
-	if((start instanceof BType || start instanceof BObject)
-		&& end instanceof BType)
+	// if((start instanceof BType || start instanceof BObject)
+	// 	&& end instanceof BType)
 	BLink.call(this,purostr.BinstanceOf, start, end);
-	else return null;
+	// else return null;
 }
 
 function SubTypeOfLink(name, start, end) {
-	if(start instanceof BType && end instanceof BType)
+	//if(start instanceof BType && end instanceof BType)
 		BLink.call(this,purostr.BsubTypeOf, start, end);
-	else return null;
+	//else return null;
 }
 
 InstanceOfLink.prototype = Object.create(BLink.prototype);
 SubTypeOfLink.prototype = Object.create(BLink.prototype);
+DisjointLink.prototype = Object.create(BLink.prototype);
+DisjointLink.prototype.constructor = DisjointLink;
 InstanceOfLink.prototype.constructor = InstanceOfLink;
 SubTypeOfLink.prototype.constructor = SubTypeOfLink;
 
@@ -536,6 +551,36 @@ PuroModel.prototype.validate = function() {
 			// if(!hasType) this.nodes[i].errors.setError(purostr.errorType);
 		}
 	}
+}
+
+LinkRules = {
+    possibleLinkTypes: function (l) {
+        var possibleLinks = [];
+        if (l.startNode instanceof BObject) {
+            if (l.endNode instanceof BRelation) possibleLinks.push(linkTypes.participates);
+            if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
+            if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
+        }
+        else if (l.startNode instanceof BAttribute) {
+            if (l.endNode instanceof BValuation) possibleLinks.push(linkTypes.link);
+            if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
+        }
+        else if (l.startNode instanceof BRelation) {
+            if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
+            if (l.endNode instanceof BObject || BType) possibleLinks.push(linkTypes.participates);
+            if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
+        }
+        else if (l.startNode instanceof BType) {
+            if (l.endNode instanceof BType) {
+                possibleLinks.push(linkTypes.instanceOf);
+                possibleLinks.push(linkTypes.subTypeOf);
+                possibleLinks.push(linkTypes.disjoint);
+            }
+            if (l.endNode instanceof BRelation) possibleLinks.push(linkTypes.participates);
+            if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
+        }
+        return possibleLinks;
+    }
 }
 
 var Mapping = {

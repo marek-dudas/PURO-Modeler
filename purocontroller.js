@@ -12,6 +12,35 @@ function PuroController(model){
 	this.currentUser = null;
 }
 
+PuroController.prototype.init = function () {
+	var ctrl = this;
+    this.menuLinkTypes = new mdc.menu.MDCMenu(document.querySelector('#menuLinkType'));
+    this.menuLinkTypes.listen('MDCMenu:selected', function (data) {
+    	ctrl.linkTypeSelected(data.detail.index);
+	});
+    this.menuLinkTypesItems = d3.select('#menuLinkTypeItems');
+};
+
+PuroController.prototype.linkTypeSelected = function (index) {
+    var link = null;
+    var linkType = this.linkOptions[index];
+    if(linkType === linkTypes.participates || linkType === linkTypes.link) {
+        link = new RelationLink("", this.creationLink.startNode, this.creationLink.endNode);
+    } else if(linkType === linkTypes.instanceOf) {
+    	link = new InstanceOfLink("", this.creationLink.startNode, this.creationLink.endNode);
+    } else if(linkType === linkTypes.subTypeOf) {
+        link = new SubTypeOfLink("", this.creationLink.startNode, this.creationLink.endNode);
+    } else if(linkType === linkTypes.disjoint) {
+        link = new DisjointLink("", this.creationLink.startNode, this.creationLink.endNode);
+    }
+    this.creationLink.hide();
+    if(link) {
+        this.model.addLink(link);
+        this.view.updateView();
+        this.saveModel();
+    }
+}
+
 PuroController.prototype.startNodeDrag = function(node) {
 	
 	this.view.setDraggedNode(node);
@@ -170,7 +199,22 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 };
 
 PuroController.prototype.creationLinkMouseUp = function (creationLink) {
-
+	this.creationLink = creationLink;
+	this.linkOptions = LinkRules.possibleLinkTypes(creationLink);
+	if(this.linkOptions.length > 1) {
+		this.menuLinkTypesItems.selectAll('li').remove();
+		var dMenuItems = this.menuLinkTypesItems.selectAll('li').data(this.linkOptions);
+        dMenuItems.enter().append('li')
+			.classed('mdc-list-item', true)
+			.attr('role', 'menuitem')
+			.append('span')
+			.classed('mdc-list-item__text', true)
+			.text(function(d){return d;});
+		var pos = Utils.getElementInfoLocation(creationLink.getSvg());
+        this.menuLinkTypes.setAbsolutePosition(pos.x, pos.y);
+		this.menuLinkTypes.open = true;
+	} else if (this.linkOptions.length === 1) this.linkTypeSelected(0);
+	else this.creationLink.hide();
 };
 
 PuroController.prototype.selectNode = function(node, noDeselectFirst) {
@@ -908,5 +952,24 @@ BLink.prototype.getMiddlePoint = function() {
 	return middle;
 };
 
-
+Utils = {
+    getBBox: function (d3Element) {
+        // var htmlElement = d3Element.node();
+        // if (htmlElement != null) return htmlElement.getBoundingClientRect();
+        // else
+        if (d3Element.attr === 'function') {
+            return document.getElementById(d3Element.attr('id')).getBoundingClientRect();
+        } else if (typeof d3Element === 'string') {
+            return document.getElementById(d3Element.replace(/#/, '')).getBoundingClientRect();
+        } else if (typeof d3Element.node === 'function') {
+            return d3Element.node().getBoundingClientRect();
+        } else if (typeof d3.select(d3Element).node().getBoundingClientRect === 'function') {
+            return d3.select(d3Element).node().getBoundingClientRect();
+        } else return null;
+    },
+    getElementInfoLocation: function(d3Element) {
+        var box = Utils.getBBox(d3Element);
+        return {x: box.left + box.width/2, y: box.top};
+    }
+}
 

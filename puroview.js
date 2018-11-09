@@ -203,7 +203,8 @@ PuroView.prototype.showCreationLink = function (fromNode) {
         		var location = d3.mouse(puroView.rootSvg.node());
         		var mousePoint = {x: location[0], y: location[1]};
         		var nearestNode = nearPoint(mousePoint, puroView.creationLink.otherNodes);
-        		if (nearestNode && pointDistance(mousePoint, nearestNode) < 150) puroView.creationLink.stickToNode(nearestNode);
+        		if (nearestNode && pointDistance(mousePoint, nearestNode) < 150
+					&& LinkRules.possibleLinkTypes({startNode:puroView.creationLink.startNode, endNode: nearestNode}).length>0) puroView.creationLink.stickToNode(nearestNode);
         		else puroView.creationLink.setEnd(mousePoint);
             });
         	puroView.rootSvg.on("mouseup", function() {

@@ -2,7 +2,8 @@ var PuroEditor = {
   init: function(toolBoxElement, viewElement, obmListTableElement, width, height) {
 	model = new PuroModel();
 	this.view = new PuroView(width, height, viewElement);
-	this.control = new PuroController(model); 
+	this.control = new PuroController(model);
+	this.control.init();
 	this.view.decorateControls(toolBoxElement, this.control);
 	this.view.setData(model);
 	this.control.setView(this.view);
