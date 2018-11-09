@@ -18,3 +18,11 @@ body {
 .app-bar {
     position: absolute;
 }
+
+.del-button {
+    position: absolute;
+    display: none;
+    /*font-size: 30px;*/
+    /*height: 40px;*/
+    /*width: 30px;*/
+}

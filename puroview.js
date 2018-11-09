@@ -97,7 +97,7 @@ function CreationLink (inSvg) {
         .append('svg:path')
         //.attr('d', 'M0,-5L10,0L0,5')
         .attr('d', 'M2,2 L2,24 L24,13Z')
-        .style("fill", "#f00");
+        .style("fill", "#fff");
 
 	// var link = inSvg.append("line")
      //    .style("stroke", "#f00")
@@ -107,7 +107,7 @@ function CreationLink (inSvg) {
 
     var link = inSvg.append("path")
         .style("stroke", "#000")
-		.attr("fill", "#f00")
+		.attr("fill", "#fff")
         .style("stroke-width", 2)
         .style('visibility', 'hidden');
 
@@ -156,7 +156,7 @@ function CreationLink (inSvg) {
 			return link;
 		},
 		setStartNode: function (fromNode, otherNodes) {
-			ray.start = fromNode;
+			ray.start = new Point(fromNode.x, fromNode.y);
 			this.startNode = fromNode;
 			this.otherNodes = otherNodes;
             this.end = {};
@@ -168,13 +168,13 @@ function CreationLink (inSvg) {
 			this.render();
 		},
 		setEnd: function (pos) {
-			this.end = ray.end = pos;
+			this.end = ray.end = new Point(pos.x, pos.y);
 			this.endNode = null;
 			this.countStart();
 			this.render();
 		},
 		stickToNode:  function (toNode) {
-        	ray.end = toNode;
+        	ray.end = new Point(toNode.x, toNode.y);
 			this.end = toNode.linkIntersection(ray, this.startNode);
 			this.endNode = toNode;
 			this.countStart();
@@ -200,7 +200,7 @@ PuroView.prototype.showCreationLink = function (fromNode) {
             d3.event.stopPropagation();
         	puroView.creationLink.startDrag();
         	puroView.rootSvg.on("mousemove", function() {
-        		var location = d3.mouse(puroView.rootSvg.node());
+        		var location = d3.mouse(puroView.svg.node());
         		var mousePoint = {x: location[0], y: location[1]};
         		var nearestNode = nearPoint(mousePoint, puroView.creationLink.otherNodes);
         		if (nearestNode && pointDistance(mousePoint, nearestNode) < 150
@@ -291,6 +291,9 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 	})
 	d3.select("#btnLogout").on("click", function(){
 		PuroEditor.logout();
+	})
+	d3.select("#btnDel").on("click", function(){
+
 	})
 };
 
@@ -442,11 +445,31 @@ PuroView.prototype.updateToolHighlights = function() {
 	};
 }
 
+PuroView.prototype.showDelButton = function (node, nodeElement) {
+	var loc = Utils.getElementControlsLocation(nodeElement);
+	var delButton = d3.select("#btnDel");
+	var ctrl = this.puroCtrl;
+	var view = this;
+    delButton.style('left', loc.x+'px')
+		.style('top', loc.y+'px')
+		.on('click', function () {
+			view.hideNodeControls();
+			ctrl.delNode(node);
+		});
+    $('#btnDel').show();
+};
+
+PuroView.prototype.hideNodeControls = function () {
+	$('#btnDel').hide();
+	if(this.creationLink) this.creationLink.hide();
+};
+
 PuroView.prototype.updateView = function() {
 	
 	this.updateToolHighlights();
 	   
     var puroControl = this.puroCtrl;
+    var view = this;
     
     this.edges = this.edges.data(this.model.links, function(d) {return d.id;});    
     
@@ -464,6 +487,9 @@ PuroView.prototype.updateView = function() {
 	        .on("mousedown", function(d){
 	        	puroControl.canvasMouseDown(d3.mouse(this), d);}
 	        )
+		.on("mouseover", function(d){
+            view.showDelButton(d, this);
+		})
      .on('dblclick', function(d){
 			     puroControl.nodeDblClick(d);
 			      var text = d3.select(this).select("text")[0][0];
@@ -539,6 +565,7 @@ PuroView.prototype.updateView = function() {
     			})
 			.on('mouseover', function(d) {
 				if (!view.creationLink || !view.creationLink.dragging) view.showCreationLink(d);
+				view.showDelButton(d, this);
 			})
 	        .call(node_drag)
 	        .classed("node",true)
@@ -757,20 +784,20 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	  	return gButton;
 	};	
 	
-	this.buttons = {};
-	this.buttonsArray = [];
+	// this.buttons = {};
+	// this.buttonsArray = [];
 	
 	//addButton("Move/Rename", 150, 50, 210, 350, BTypePath, function(){
 	//		puroControl.setTool(puroControl.TOOL.select);}, "#7dd");
-	this.buttons.link = addButton("<- Link ->", 110, 20, 210, 110, BTypePath, function(){
-			puroControl.setTool(puroControl.TOOL.link);});
-	this.buttons.link.tool = puroControl.TOOL.link;
-	this.buttons.instanceOf = addButton("<- instanceOf-Link ->", 170, 30, 210, 50, BTypePath, function(){
-			puroControl.setTool(puroControl.TOOL.instanceOfLink);});
-	this.buttons.instanceOf.tool = puroControl.TOOL.instanceOfLink;
-	this.buttons.subTypeOf = addButton("<- subTypeOf-Link ->", 170, 30, 210, 170, BTypePath, function(){
-			puroControl.setTool(puroControl.TOOL.subtypeOfLink);});
-	this.buttons.subTypeOf.tool = puroControl.TOOL.subtypeOfLink;
+	// this.buttons.link = addButton("<- Link ->", 110, 20, 210, 110, BTypePath, function(){
+	// 		puroControl.setTool(puroControl.TOOL.link);});
+	// this.buttons.link.tool = puroControl.TOOL.link;
+	// this.buttons.instanceOf = addButton("<- instanceOf-Link ->", 170, 30, 210, 50, BTypePath, function(){
+	// 		puroControl.setTool(puroControl.TOOL.instanceOfLink);});
+	// this.buttons.instanceOf.tool = puroControl.TOOL.instanceOfLink;
+	// this.buttons.subTypeOf = addButton("<- subTypeOf-Link ->", 170, 30, 210, 170, BTypePath, function(){
+	// 		puroControl.setTool(puroControl.TOOL.subtypeOfLink);});
+	// this.buttons.subTypeOf.tool = puroControl.TOOL.subtypeOfLink;
 	addButton("BType", 100, 50, 70, 30, BTypePath, function(){
 			puroControl.setTool(puroControl.TOOL.createBType);});
 	addButton("BObject", 100, 30, 70, 110, BObjectPath, function(){
@@ -779,13 +806,13 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 			puroControl.setTool(puroControl.TOOL.createBRelation);});
 	addButton("BValuation", 120, 30, 70, 290, BValuationPath, function(){
 			puroControl.setTool(puroControl.TOOL.createBValuation);});
-	this.buttons.del = addButton("Delete", 80, 30, 80, 400, BValuationPath, function(){
-			puroControl.setTool(puroControl.TOOL.del);}, "#f77");
-	this.buttons.del.tool = puroControl.TOOL.del;
-	this.buttonsArray.push(this.buttons.link);
-	this.buttonsArray.push(this.buttons.instanceOf);
-	this.buttonsArray.push(this.buttons.subTypeOf);
-	this.buttonsArray.push(this.buttons.del);
+	// this.buttons.del = addButton("Delete", 80, 30, 80, 400, BValuationPath, function(){
+	// 		puroControl.setTool(puroControl.TOOL.del);}, "#f77");
+	// this.buttons.del.tool = puroControl.TOOL.del;
+	// this.buttonsArray.push(this.buttons.link);
+	// this.buttonsArray.push(this.buttons.instanceOf);
+	// this.buttonsArray.push(this.buttons.subTypeOf);
+	// this.buttonsArray.push(this.buttons.del);
 };
 
 function BTypePath(width, height) {
@@ -803,6 +830,10 @@ function BRelationPath(width, height) {
 function BValuationPath(width, height) {
 	var slope = width/7;
 	return "M"+((-width/2))+","+(height/2)+" l "+(width)+","+0+" l "+slope+","+(-height)+" l "+(-width)+","+(0)+" z";
+}
+
+function BAttributePath(width, height) {
+    return "M"+(-width/2)+","+(0)+" l "+width/4+","+height/2 +" l "+width/2+","+0+" l "+width/4+","+(-height/2)+" l "+(-width/4)+","+(-height/2)+"l"+(-width/2)+",0z";
 }
 
 function vocabPath(fromPath) {
@@ -839,6 +870,12 @@ BValuation.prototype.getPathData = function() {
 	this.slope = this.width/7;
 	return BValuationPath(this.width, this.height);
 };
+
+BAttribute.prototype.getPathData = function() {
+    this.width=50;
+    this.height=30;
+    return BAttributePath(this.width, this.height);
+}
 
 BLink.prototype.dashed = function() {
 	return "5,5";

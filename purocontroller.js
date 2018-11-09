@@ -1,7 +1,7 @@
 
 
 function PuroController(model){
-	this.TOOL = Object.freeze({select: {}, createBType: {}, createBValuation: {}, createBObject: {}, createBRelation: {}, link: {}, instanceOfLink: {}, subtypeOfLink: {}, del: {}});
+	this.TOOL = Object.freeze({select: {}, createBType: {}, createBValuation: {}, createBObject: {}, createBRelation: {}, createBAttribute: {}, link: {}, instanceOfLink: {}, subtypeOfLink: {}, del: {}});
 	this.model = model;
 	this.activeTool = this.TOOL.select;
 	this.linkStart = null;
@@ -102,7 +102,24 @@ PuroController.prototype.newNode = function(node, location){
 	this.view.updateView();
 };
 
+PuroController.prototype.delNode = function(node) {
+    this.selectNode(null);
+    if(node!=null && node instanceof BTerm)
+    {
+        this.model.removeNode(node);
+        this.model.validate();
+        this.view.updateView();
+    }
+    if(node!=null && node instanceof BLink)
+    {
+        this.model.removeLink(node);
+        this.model.validate();
+        this.view.updateView();
+    }
+};
+
 PuroController.prototype.canvasMouseDown = function(location, node){
+	this.view.hideNodeControls();
 	if(this.activeTool === this.TOOL.createBType) {
 		this.newNode(new BType("new BType"), location);
 		this.activeTool = this.TOOL.select;
@@ -970,6 +987,10 @@ Utils = {
     getElementInfoLocation: function(d3Element) {
         var box = Utils.getBBox(d3Element);
         return {x: box.left + box.width/2, y: box.top};
-    }
+    },
+	getElementControlsLocation: function(d3Element) {
+        var box = Utils.getBBox(d3Element);
+        return {x: box.left, y: box.top - 20};
+	}
 }
 
