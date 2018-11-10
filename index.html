@@ -39,7 +39,7 @@
 
 
     </head>
-    <body><aside class="mdc-drawer mdc-drawer--dismissible">
+    <body class="mdc-typography"><aside class="mdc-drawer mdc-drawer--dismissible">
 			<div class="mdc-drawer__content">
 				<div class="mdc-list">
 					<a class="mdc-list-item mdc-list-item--activated" href="#" aria-selected="true">
@@ -74,7 +74,19 @@
 			<main class="main-content" id="main-content">
 				<div class="mdc-top-app-bar--fixed-adjust">
 					<div id="canvas" class="canvas"></div>
-					<div id="tools"  class="toolbox mdc-elevation--z8"></div>
+					<div id="tools"  class="toolbox mdc-elevation--z8">
+						<div class="toolboxSwitches">
+						<div id="switchDivAdvanced" class="mdc-switch mdc-switch--checked">
+							<div class="mdc-switch__track"></div>
+							<div class="mdc-switch__thumb-underlay">
+								<div class="mdc-switch__thumb">
+									<input type="checkbox" id="switchAdvanced" class="mdc-switch__native-control" role="switch" checked>
+								</div>
+							</div>
+						</div>
+						<label for="switchAdvanced" class="mdc-typography--caption">Advanced</label>
+						</div>
+					</div>
 				</div>
 			</main>
 		</div>

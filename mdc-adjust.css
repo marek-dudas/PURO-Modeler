@@ -26,3 +26,9 @@ body {
     /*height: 40px;*/
     /*width: 30px;*/
 }
+
+.toolboxSwitches {
+    position:absolute;
+    bottom:20px;
+    right:20px;
+}

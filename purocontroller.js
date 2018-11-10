@@ -1,7 +1,7 @@
 
 
 function PuroController(model){
-	this.TOOL = Object.freeze({select: {}, createBType: {}, createBValuation: {}, createBObject: {}, createBRelation: {}, createBAttribute: {}, link: {}, instanceOfLink: {}, subtypeOfLink: {}, del: {}});
+	this.TOOL = Object.freeze({select: {}, createBType: {}, createBValuation: {}, createBObject: {}, createBRelation: {}, createBAttribute: {}, createSomeObjects: {}, link: {}, instanceOfLink: {}, subtypeOfLink: {}, del: {}});
 	this.model = model;
 	this.activeTool = this.TOOL.select;
 	this.linkStart = null;
@@ -58,7 +58,7 @@ PuroController.prototype.setTool = function(tool){
 			d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Type.");
 			break;
 		case this.TOOL.createBValuation:
-			this.startNodeDrag(new BValuation("new BValuation"));
+			this.startNodeDrag(new BValuation("new value"));
 			d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Valuation.");
 			break;
 		case this.TOOL.createBObject:
@@ -69,6 +69,14 @@ PuroController.prototype.setTool = function(tool){
 			this.startNodeDrag(new BRelation("new BRelation"));
 			d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Relation.");
 			break;
+        case this.TOOL.createBAttribute:
+            this.startNodeDrag(new BAttribute("new BAttribute"));
+            d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Relation.");
+            break;
+        case this.TOOL.createSomeObjects:
+            this.startNodeDrag(new SomeObjects("Some Objects"));
+            d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Relation.");
+            break;
 		case this.TOOL.link:
 			d3.select("#tooltip").text("Click on the node to start a link from there.");
 			break;
@@ -125,7 +133,7 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 		this.activeTool = this.TOOL.select;
 	}
 	else if(this.activeTool === this.TOOL.createBValuation) {
-		this.newNode(new BValuation("new BValuation"), location);
+		this.newNode(new BValuation("new value"), location);
 		this.activeTool = this.TOOL.select;
 	}
 	else if(this.activeTool === this.TOOL.createBObject) {
@@ -136,6 +144,14 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 		this.newNode(new BRelation("new BRelation"), location);
 		this.activeTool = this.TOOL.select;
 	}
+    else if(this.activeTool === this.TOOL.createBAttribute) {
+        this.newNode(new BAttribute("new BAttribute"), location);
+        this.activeTool = this.TOOL.select;
+    }
+    else if(this.activeTool === this.TOOL.createSomeObjects) {
+        this.newNode(new SomeObjects("Some objects"), location);
+        this.activeTool = this.TOOL.select;
+    }
 	else if(this.activeTool === this.TOOL.link
 		|| this.activeTool === this.TOOL.instanceOfLink
 		|| this.activeTool === this.TOOL.subtypeOfLink) {
@@ -185,21 +201,6 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 				this.selectNode(node);
 				this.view.updateView();
 			}
-		}
-	}
-	else if(this.activeTool === this.TOOL.del) {
-		this.selectNode(null);
-		if(node!=null && node instanceof BTerm) 
-		{
-			this.model.removeNode(node);
-			this.model.validate();
-			this.view.updateView();
-		}
-		if(node!=null && node instanceof BLink) 
-		{
-			this.model.removeLink(node);
-			this.model.validate();
-			this.view.updateView();
 		}
 	}
 	else if(this.activeTool === this.TOOL.select) {
@@ -896,24 +897,28 @@ function Line(start, end) {
 	this.end = end;
 }
 
-BObject.prototype.linkIntersection = function(link, nearTo){
-	var lines = [
-		new Line(new Point(this.x-this.width/2, this.y-this.height/2), new Point(this.x+this.width/2, this.y-this.height/2)),
-		new Line(new Point(this.x-this.width/2, this.y-this.height/2), new Point(this.x-this.width/2, this.y+this.height/2)),
-		new Line(new Point(this.x+this.width/2, this.y-this.height/2), new Point(this.x+this.width/2, this.y+this.height/2)),
-		new Line(new Point(this.x-this.width/2, this.y+this.height/2), new Point(this.x+this.width/2, this.y+this.height/2)),		
-	];
-	var intersections = [];
-	for(var i=0; i<4; i++) {
-		var inters = rayLineIntersection(link.start, lineEquation(link.start,link.end), lines[i].start, lines[i].end);
-		if(inters!=null) intersections.push(inters);
-	}
-	if(intersections.length==0) 
-	{
-		return null;
-	}
-	return nearPoint(nearTo, intersections);
-};
+function RectangleIntersection(link, nearTo){
+    var lines = [
+        new Line(new Point(this.x-this.width/2, this.y-this.height/2), new Point(this.x+this.width/2, this.y-this.height/2)),
+        new Line(new Point(this.x-this.width/2, this.y-this.height/2), new Point(this.x-this.width/2, this.y+this.height/2)),
+        new Line(new Point(this.x+this.width/2, this.y-this.height/2), new Point(this.x+this.width/2, this.y+this.height/2)),
+        new Line(new Point(this.x-this.width/2, this.y+this.height/2), new Point(this.x+this.width/2, this.y+this.height/2)),
+    ];
+    var intersections = [];
+    for(var i=0; i<4; i++) {
+        var inters = rayLineIntersection(link.start, lineEquation(link.start,link.end), lines[i].start, lines[i].end);
+        if(inters!=null) intersections.push(inters);
+    }
+    if(intersections.length==0)
+    {
+        return null;
+    }
+    return nearPoint(nearTo, intersections);
+}
+
+BObject.prototype.linkIntersection = RectangleIntersection;
+
+SomeObjects.prototype.linkIntersection = RectangleIntersection;
 
 BRelation.prototype.linkIntersection = function(link, nearTo){
 	var lines = [
@@ -929,6 +934,24 @@ BRelation.prototype.linkIntersection = function(link, nearTo){
 	}
 	if(intersections.length==0) return null;
 	return nearPoint(nearTo, intersections);
+};
+
+BAttribute.prototype.linkIntersection = function(link, nearTo){
+    var lines = [
+        new Line(new Point(this.x-this.width/2, this.y), new Point(this.x-width/4, this.y-this.height/2)),
+        new Line(new Point(this.x-width/4, this.y-this.height/2), new Point(this.x+width/4, this.y-this.height/2)),
+        new Line(new Point(this.x+width/4, this.y-this.height/2), new Point(this.x+width/2, this.y)),
+        new Line(new Point(this.x+width/2, this.y), new Point(this.x+width/4, this.y+this.height/2)),
+        new Line(new Point(this.x+width/4, this.y+this.height/2), new Point(this.x-width/4, this.y+this.height/2)),
+        new Line(new Point(this.x-width/4, this.y+this.height/2), new Point(this.x-this.width/2, this.y)),
+    ];
+    var intersections = [];
+    for(var i=0; i<6; i++) {
+        var inters = rayLineIntersection(link.start, lineEquation(link.start,link.end), lines[i].start, lines[i].end);
+        if(inters!=null) intersections.push(inters);
+    }
+    if(intersections.length==0) return null;
+    return nearPoint(nearTo, intersections);
 };
 
 BValuation.prototype.linkIntersection = function(link, nearTo){

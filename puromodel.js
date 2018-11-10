@@ -88,6 +88,12 @@ function BObject(name) {
 	this.puroTerm = puroOntology.Bobject;
 }
 
+function SomeObjects(name) {
+    BTerm.call(this,name);
+    this.type=purostr.someObjects; //"B-object";
+    this.puroTerm = puroOntology.Bobject;
+}
+
 function BValuation(name) {
 	BTerm.call(this,name);
 	this.type=purostr.Bvaluation; //"B-valuation";
@@ -108,6 +114,7 @@ function BRelation(name) {
 
 BType.prototype = Object.create(BTerm.prototype);
 BObject.prototype = Object.create(BTerm.prototype);
+SomeObjects.prototype = Object.create(BTerm.prototype);
 BValuation.prototype = Object.create(BTerm.prototype);
 BRelation.prototype = Object.create(BTerm.prototype);
 BAttribute.prototype = Object.create(BTerm.prototype);
@@ -117,6 +124,7 @@ BObject.prototype.constructor = BObject;
 BValuation.prototype.constructor = BValuation;
 BRelation.prototype.constructor = BRelation;
 BAttribute.prototype.constructor = BAttribute;
+SomeObjects.prototype.constructor = SomeObjects;
 
 BTerm.prototype.initMappings = function() {
 	this.mappings = [];
@@ -235,7 +243,9 @@ BLink.prototype.connectedTo = function(node) {
 };
 
 function DisjointLink(name, start, end) {
-	BLink.call(this, purostr.disjoint, start, end);
+	var blink = BLink(this, purostr.disjoint, start, end);
+	blink.left = true;
+	return blink;
 }
 
 function RelationLink(name, start, end) {
@@ -338,7 +348,9 @@ PuroModel.prototype.addNode = function(node) {
 	if(node instanceof BType
 		|| node instanceof BValuation
 		|| node instanceof BRelation
-		|| node instanceof BObject) {
+		|| node instanceof BObject
+	|| node instanceof BAttribute
+	|| node instanceof SomeObjects) {
 			node.id = this.idCounter++;
 			this.nodes.push(node);
 			this.updateBTypeLevels();

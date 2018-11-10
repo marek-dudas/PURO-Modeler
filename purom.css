@@ -2,6 +2,13 @@ text {
     font: 16px Helvetica Neue, Helvetica, Arial, sans-serif;
     text-anchor: middle;
     pointer-events: none;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
 
 circle {
@@ -12,11 +19,48 @@ circle {
     fill: #FFA500;
 }
 
-.node path {
-    fill: #FFEECA;
-    cursor: pointer;
-    stroke: #ccc;
+/*.node path {*/
+    /*fill: #FFEECA;*/
+    /*cursor: pointer;*/
+    /*stroke: #ccc;*/
+    /*stroke-width: 1px;*/
+/*}*/
+
+.B-type path {
+    fill: #1992FC;
+    stroke: none;
+}
+
+.B-object path {
+    fill: #B1DDF0;
+    stroke: #000;
     stroke-width: 1px;
+}
+
+.B-valuation path {
+    fill: #FAD7AC;
+    stroke: #000;
+    stroke-width: 1px;
+}
+
+.B-relation path {
+    fill: #7FE01F;
+    stroke: none;
+}
+
+.B-attribute path {
+    fill: #F0A30A;
+    stroke: none;
+}
+
+.Some_objects path {
+    fill: #B1DDF0;
+    stroke: #000;
+    stroke-width: 1px;
+}
+
+.hasError path {
+    stroke: #f00
 }
 
 path.selected {
@@ -25,10 +69,6 @@ path.selected {
 
 .selected path {
     fill: #FFC125 !important;
-}
-
-.node path:hover {
-    fill: #FFA500;
 }
 
 .linklabelholder path {
@@ -62,7 +102,7 @@ text.vocabPath {
 
 .toolbox {
     width: 330px;
-    height: 450px;
+    height: 330px;
     position: absolute;
     right: 10px;
     top: 70px;

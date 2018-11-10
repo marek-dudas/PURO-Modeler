@@ -30,13 +30,13 @@ function PuroView(width, height, viewingElement){
 
 	this.svg.append('svg:defs').append('svg:marker')
 	    .attr('id', 'start-arrow')
-	    .attr('viewBox', '0 -5 10 10')
+	    //.attr('viewBox', '0 -5 10 10')
 	    .attr('refX', 4)
-	    .attr('markerWidth', 3)
-	    .attr('markerHeight', 3)
+	    .attr('markerWidth', 13)
+	    .attr('markerHeight', 13)
 	    .attr('orient', 'auto')
   	.append('svg:path')
-    	.attr('d', 'M10,-5L0,0L10,5')
+    	.attr('d', 'M10,0L0,6L10,10')
     	.attr('fill', '#000');
     	
     this.svg.append('svg:defs').append('filter')
@@ -295,6 +295,10 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 	d3.select("#btnDel").on("click", function(){
 
 	})
+
+    this.switchAdvanced = new mdc.switchControl.MDCSwitch(document.querySelector('#switchDivAdvanced'));
+	this.switchAdvanced.checked = false;
+	this.switchAdvanced.listen('change', function () {view.showAdvanced(view.switchAdvanced.checked);} );
 };
 
 PuroView.prototype.decorateEditorControls = function(puroControl) {
@@ -404,7 +408,7 @@ PuroView.prototype.setDraggedNode = function(node) {
 				.attr("width", node.width)
 				.attr("height", node.height);
 	
-	this.dragButton = this.dragSvg.append("g").classed("node",true);
+	this.dragButton = this.dragSvg.append("g").classed(node.type,true);
 	
 	var button = this.dragButton.append("path").attr("d", node.getPathData());
 			//if(specialColor != null) button.style("fill", specialColor);
@@ -437,14 +441,6 @@ PuroView.prototype.setDraggedNode = function(node) {
 	}
 }
 
-PuroView.prototype.updateToolHighlights = function() {
-	for(var i=0; i<this.buttonsArray.length; i++) {
-		var button = this.buttonsArray[i];
-		button.classed("selected", false);
-		if(button.tool == this.puroCtrl.activeTool) button.classed("selected", true);
-	};
-}
-
 PuroView.prototype.showDelButton = function (node, nodeElement) {
 	var loc = Utils.getElementControlsLocation(nodeElement);
 	var delButton = d3.select("#btnDel");
@@ -465,8 +461,6 @@ PuroView.prototype.hideNodeControls = function () {
 };
 
 PuroView.prototype.updateView = function() {
-	
-	this.updateToolHighlights();
 	   
     var puroControl = this.puroCtrl;
     var view = this;
@@ -568,7 +562,7 @@ PuroView.prototype.updateView = function() {
 				view.showDelButton(d, this);
 			})
 	        .call(node_drag)
-	        .classed("node",true)
+	        .each(function (d) {d3.select(this).classed(d.type, true);})
 	        .classed("mapping",function(d){return d.getType()=="mapping"});
 	        //.append("circle")
 	        //.attr("r", 10)
@@ -599,7 +593,7 @@ PuroView.prototype.updateView = function() {
 		 this.nodes.selectAll(".nodename").text(function(d) {return d.name;});
 		 this.nodes.selectAll("title").remove();
 		 this.nodes.selectAll("path").classed("selected", function(d) {return d.selected;})
-		    .style("stroke", function(d) {return (d.errors.hasError())?"#f00":"#ccc";})
+		    .classed('hasError', function(d) {return (d.errors.hasError());})
 		    .append("title").text(function(d) {return d.errors.getMessage();});	        	
 		 this.linktext.selectAll("title").remove();
 		 this.edges.style("stroke", function(d) {return (d.errors.hasError())?"#f00":"#ccc";});
@@ -754,13 +748,18 @@ PuroView.prototype.findBestLabelPos = function(otherPositions, path){
 	}
 };
 
+PuroView.prototype.showAdvanced = function (advancedOn) {
+	if (advancedOn) this.btnSomeObjects.style('visibility', 'visible');
+    else this.btnSomeObjects.style('visibility', 'hidden');
+}
+
 PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	this.toolSvg = d3.select("#"+toolElement).append("svg")
 		.attr("width", 300)
-		.attr("height", 500);
+		.attr("height", 300);
 	
-	addButton = function(label, width, height, x, y, pathFunction, onClickFunction, specialColor) {
-		var gButton = PuroEditor.view.toolSvg.append("g").classed("node",true);
+	addButton = function(label, type, width, height, x, y, pathFunction, onClickFunction, specialColor) {
+		var gButton = PuroEditor.view.toolSvg.append("g").classed(type, true);
 		
 		var button = gButton.append("path").attr("d", pathFunction.apply(null, [width,height]));
 				if(specialColor != null) button.style("fill", specialColor);
@@ -798,14 +797,19 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	// this.buttons.subTypeOf = addButton("<- subTypeOf-Link ->", 170, 30, 210, 170, BTypePath, function(){
 	// 		puroControl.setTool(puroControl.TOOL.subtypeOfLink);});
 	// this.buttons.subTypeOf.tool = puroControl.TOOL.subtypeOfLink;
-	addButton("BType", 100, 50, 70, 30, BTypePath, function(){
+	addButton("B-type", purostr.Btype, 100, 50, 70, 40, BTypePath, function(){
 			puroControl.setTool(puroControl.TOOL.createBType);});
-	addButton("BObject", 100, 30, 70, 110, BObjectPath, function(){
+	addButton("B-object", purostr.Bobject, 100, 30, 200, 40, BObjectPath, function(){
 			puroControl.setTool(puroControl.TOOL.createBObject);});
-	addButton("BRelation", 120, 80, 70, 205, BRelationPath, function(){
+	addButton("B-relation", purostr.Brelation, 120, 80, 70, 210, BRelationPath, function(){
 			puroControl.setTool(puroControl.TOOL.createBRelation);});
-	addButton("BValuation", 120, 30, 70, 290, BValuationPath, function(){
+	addButton("value", purostr.Bvaluation, 60, 30, 200, 110, BValuationPath, function(){
 			puroControl.setTool(puroControl.TOOL.createBValuation);});
+    addButton("B-attribute", purostr.Battribute, 120, 30, 70, 110, BAttributePath, function(){
+        puroControl.setTool(puroControl.TOOL.createBAttribute);});
+    this.btnSomeObjects = addButton("Some objects", purostr.someObjects, 120, 60, 200, 210, SomeObjectsPath, function(){
+            puroControl.setTool(puroControl.TOOL.createSomeObjects);});
+    this.btnSomeObjects.style('visibility', 'hidden');
 	// this.buttons.del = addButton("Delete", 80, 30, 80, 400, BValuationPath, function(){
 	// 		puroControl.setTool(puroControl.TOOL.del);}, "#f77");
 	// this.buttons.del.tool = puroControl.TOOL.del;
@@ -821,6 +825,12 @@ function BTypePath(width, height) {
 
 function BObjectPath(width, height) {
 	return "M"+(-width/2)+","+(-height/2)+" l 0,"+height+" l "+width+",0 l 0,"+(-height)+" z";
+}
+
+function SomeObjectsPath(width, height) {
+    return "M"+(-width/2)+","+(-height/2)+" l 0,"+height+" l "+width+",0 l 0,"+(-height)+" L "+(-width/2)+","+(-height/2) +
+        "M"+(-width/2+10)+","+(height/2)+" l 0,10 l "+width+",0 l 0,"+(-height)+" l "+(-10)+","+(0) +
+        "M"+(-width/2+20)+","+(height/2+10)+" l 0,10 l "+width+",0 l 0,"+(-height)+" l "+(-10)+","+(0);
 }
 
 function BRelationPath(width, height) {
@@ -858,15 +868,21 @@ BObject.prototype.getPathData = function() {
 	return BObjectPath(this.width, this.height);
 };
 
+SomeObjects.prototype.getPathData = function () {
+	this.width = 90;
+	this.height = 60;
+	return SomeObjectsPath(this.width-20, this.height-20);
+}
+
 BRelation.prototype.getPathData = function() {
-	this.width=110;
+	this.width=60;
 	this.height=60;
 	return BRelationPath(this.width, this.height);
 };
 
 BValuation.prototype.getPathData = function() {
-	this.width=90;
-	this.height=40;
+	this.width=60;
+	this.height=30;
 	this.slope = this.width/7;
 	return BValuationPath(this.width, this.height);
 };
@@ -886,5 +902,9 @@ InstanceOfLink.prototype.dashed = function() {
 };
 
 SubTypeOfLink.prototype.dashed = function() {
+	return "3,3";
+};
+
+DisjointLink.prototype.dashed = function() {
 	return "3,3";
 };
