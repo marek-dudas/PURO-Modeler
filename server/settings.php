@@ -1,7 +1,7 @@
 <?php 
 	$debug = true;
 	$debug_solo = false;
-	$serverRoot = "http://localhost/puromodeler"; //"http://lod2-dev.vse.cz/puromodeler-v3.5";
+	$serverRoot = "http://localhost/purom"; //"http://lod2-dev.vse.cz/puromodeler-v3.5";
 	$webUrl = "$serverRoot/server/"; //"http://lod2-dev.vse.cz/puromodeler-v4/server/";
 	$mappingUrl = "http://owl.vse.cz:8080/OWLFragmentMapping/match?owl-fragment=";
 	$patternsMultiUrl = "$serverRoot/OBOWLMorph/patterns-multi/"; //"http://lod2-dev.vse.cz/puromodeler/patterns/";		

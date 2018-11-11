@@ -52,21 +52,21 @@ var PuroAppSettings = {
 
 if(PuroAppSettings.debug) {
 	
-	serverRoot = "http://localhost/puromodeler";
+	serverRoot = "http://localhost/purom";
 	
 	couchdbUrl = "http://localhost/couchdb/puromodels2/"; //"http://admin:c0d1988@protegeserver.cz/couchdb/puromodels"//"http://localhost/couchdb/puromodels2/";//"http://admin:c0d1988@lod2-dev.vse.cz/couchdb/puromodels2/"; //"http://localhost/couchdb/puromodels/""http://user:pasword@protegeserver.cz/couchdb";
 
-	transformServerUrl = "http://localhost/puromodeler/server/purom-transform.php";  //"http://localhost/PUROM-server/purom-transform.php""http://lod2-dev.vse.cz/puromodeler/server/purom-transform.php";
+	transformServerUrl = serverRoot+"/server/purom-transform.php";  //"http://localhost/PUROM-server/purom-transform.php""http://lod2-dev.vse.cz/puromodeler/server/purom-transform.php";
 
-	obowlmorphServerUrl = "http://localhost/puromodeler/server/obowlmorph.php";//"http://localhost/puromodeler/server/obowlmorph.php";http://lod2-dev.vse.cz/puromodeler-v2/server/obowlmorph.php
+	obowlmorphServerUrl =  serverRoot+"/server/obowlmorph.php";//"http://localhost/puromodeler/server/obowlmorph.php";http://lod2-dev.vse.cz/puromodeler-v2/server/obowlmorph.php
 
-	mappingServerUrl = "http://localhost/puromodeler/server/mappings.php"
+	mappingServerUrl =  serverRoot+"/server/mappings.php"
 
-	couchLoginUrl = "http://localhost/puromodeler/server/login.php";
+	couchLoginUrl =  serverRoot+"/puromodeler/server/login.php";
 
 	vowlUrl = "http://rknown.vserver.cz:8080/webvowl_1.0.4/#iri=";
 	
-	couchProxyUrl = "http://localhost/puromodeler/server/couchProxy.php";
+	couchProxyUrl =  serverRoot+"/server/couchProxy.php";
 	
-	sessionUrl = "http://localhost/puromodeler/server/session.php";
+	sessionUrl =  serverRoot+"/server/session.php";
 }

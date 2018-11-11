@@ -243,9 +243,8 @@ BLink.prototype.connectedTo = function(node) {
 };
 
 function DisjointLink(name, start, end) {
-	var blink = BLink(this, purostr.disjoint, start, end);
-	blink.left = true;
-	return blink;
+	BLink.call(this, purostr.disjoint, start, end);
+	this.left = true;
 }
 
 function RelationLink(name, start, end) {
@@ -282,7 +281,7 @@ function PuroModel() {
 	this.links = [];
 	this.nodes = [];
 	this.idCounter = 10;
-	this.name = "";
+	this.name = "Unnamed PURO Model";
 	this.oldId = null;
 	this.vocabs = [];
 	this.created = Date.now();
@@ -411,6 +410,8 @@ PuroModel.prototype.rebuildFrom = function(srcModel) {
 			case purostr.Bobject: newNode = new BObject(srcModel.nodes[i].name); break;
 			case purostr.Bvaluation: newNode = new BValuation(srcModel.nodes[i].name); break;
 			case purostr.Brelation: newNode = new BRelation(srcModel.nodes[i].name); break;
+            case purostr.Battribute: newNode = new BAttribute(srcModel.nodes[i].name); break;
+            case purostr.someObjects: newNode = new SomeObjects(srcModel.nodes[i].name); break;
 			default: newNode = new BTerm(srcModel.nodes[i].name);
 		}
 		newNode.id = srcModel.nodes[i].id;
@@ -428,6 +429,7 @@ PuroModel.prototype.rebuildFrom = function(srcModel) {
 		switch(srcModel.links[i].name){
 			case purostr.BinstanceOf: newLink = new InstanceOfLink(srcModel.links[i].name, this.getNodeById(srcModel.links[i].start.id), this.getNodeById(srcModel.links[i].end.id)); break;
 			case purostr.BsubTypeOf: newLink = new SubTypeOfLink(srcModel.links[i].name, this.getNodeById(srcModel.links[i].start.id), this.getNodeById(srcModel.links[i].end.id)); break;
+            case purostr.disjoint: newLink = new DisjointLink(srcModel.links[i].name, this.getNodeById(srcModel.links[i].start.id), this.getNodeById(srcModel.links[i].end.id)); break;
 			default: newLink = new BLink(srcModel.links[i].name, this.getNodeById(srcModel.links[i].start.id), this.getNodeById(srcModel.links[i].end.id));
 		}
 		newLink.startX = srcModel.links[i].startX;

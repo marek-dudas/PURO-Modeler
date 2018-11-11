@@ -129,7 +129,7 @@ PuroLoader.prototype.deleteModel = function(modelId,callback) {
 	CouchProxy.deleteModel(modelId, callback);
 }
 
-PuroLoader.prototype.getOBMs = function(puroview, url, user) {
+PuroLoader.prototype.getOBMs = function(puroview, user) {
 	//var result = this.store.fetch({sort: [{attribute: "name"}]}).results; //{sort: [{attribute: "name"}]}
 	
 	/*

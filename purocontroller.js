@@ -526,6 +526,10 @@ PuroController.prototype.loadEditor = function() {
 PuroController.prototype.setUser = function(user, pass) {
 	this.currentUser = user;
 	this.pass = pass;
+	$('#btnLogin').hide();
+	$('#btnSave').show();
+	$('#btnLoggedIn').show();
+	$('#spanUser').text(user);
 };
 
 PuroController.prototype.getCurrentUser = function () {
@@ -542,24 +546,25 @@ PuroController.prototype.updateOBMs = function() {
 }
 
 PuroController.prototype.getOBMs = function() {
-	//return this.store.getOBMs(this.view);	
-	var control = this;
-	var user = this.getCurrentUser();
-	var pass = this.pass;
-	$.get(couchLoginUrl+"?user="+user+"&pass="+pass, function(data) {
-		dojo.require("dojox.json.ref");
-		var response = dojox.json.ref.fromJson(data);
-		if(response.result) {
-			control.store.getOBMs(control.view, response.couchurl, user);
-			d3.select("#divLogin").html("Logged in as "+user);
-			d3.select("#divLogout").style("display", "inline");
-		}
-		else {
-			control.currentUser = null;
-			control.pass = null;
-			d3.select("#divLoginMessage").html("Login failed.")
-		}
-	})
+	//return this.store.getOBMs(this.view);
+    this.store.getOBMs(this.view, this.currentUser);
+	// var control = this;
+	// var user = this.getCurrentUser();
+	// var pass = this.pass;
+	// $.get(couchLoginUrl+"?user="+user+"&pass="+pass, function(data) {
+	// 	dojo.require("dojox.json.ref");
+	// 	var response = dojox.json.ref.fromJson(data);
+	// 	if(response.result) {
+	// 		control.store.getOBMs(control.view, response.couchurl, user);
+	// 		d3.select("#divLogin").html("Logged in as "+user);
+	// 		d3.select("#divLogout").style("display", "inline");
+	// 	}
+	// 	else {
+	// 		control.currentUser = null;
+	// 		control.pass = null;
+	// 		d3.select("#divLoginMessage").html("Login failed.")
+	// 	}
+	// })
 };
 
 PuroController.prototype.createVocabPaths = function(vocab) {
@@ -816,11 +821,14 @@ function pointDistance(a,b) {
 
 //line y=cx+d
 function lineEquation(start, end) {
-	if((end.x-start.x)==0) return null;
-	var lineEq = {};
-	lineEq.c = (end.y-start.y)/(end.x-start.x);
-	lineEq.d = (start.y - lineEq.c*start.x);
-	return lineEq;
+    let lineEq = {x: null, c: null, d: null};
+    if (Math.abs(end.x - start.x) < 1e-4) {
+        lineEq.x = end.x; // rounding up almost horizontal lines to prevent future rounding errors
+    } else {
+        lineEq.c = (end.y - start.y) / (end.x - start.x);
+        lineEq.d = (start.y - lineEq.c * start.x);
+    }
+    return lineEq;
 }
 
 //ellipse a,b,x,y
@@ -848,31 +856,42 @@ MappingNode.linkIntersection = function(link, nearTo){
 };
 
 //rayEq: y=cx+d
-function rayLineIntersection(rayStart, rayEq, lineStart, lineEnd) {
-	lineEq = lineEquation(lineStart, lineEnd);
-	var point = {};
-	lineVec = {};
-	if(lineEq!=null){
-		if(rayEq==null){
-			point.x = rayStart.x;
-			point.y = lineEq.c*rayStart.x+lineEq.d;
-		}
-		if((lineEq.c - rayEq.d)==0) return null;
-		point.x = (rayEq.d - lineEq.d) / (lineEq.c - rayEq.c);
-		point.y = rayEq.c*point.x+rayEq.d;
-	}
-	else{
-		if(rayEq==null) return null;
-		point.x = lineStart.x;
-		point.y = rayEq.c*point.x+rayEq.d;
-	}
-	lineVec.x = lineEnd.x - lineStart.x;
-	lineVec.y = lineEnd.y - lineStart.y;
-	var k = -1;
-	if(lineVec.x!=0) k = (point.x - lineStart.x) / lineVec.x;
-	else if(lineVec.y!=0) k = (point.y - lineStart.y) / lineVec.y;
-	if(k<0 || k>1) return null;
-	return point;
+function rayLineIntersection (rayStart, rayEq, lineStart, lineEnd) {
+    let intersection = this.rayLineIntersectAnalysis(rayStart, rayEq, lineStart, lineEnd);
+    if (intersection) {
+        if (intersection.coef < 0 || intersection.coef > 1) return null;
+        else return intersection.point;
+    } else return null;
+}
+
+function rayLineIntersectAnalysis (rayStart, rayEq, lineStart, lineEnd) {
+    var lineEq = this.lineEquation(lineStart, lineEnd);
+    var point = {};
+    var lineVec = {};
+    if (lineEq.c !== null && rayEq.c !== null) {
+        if ((lineEq.c - rayEq.c) === 0) {
+            return null;
+        }
+        point.x = (rayEq.d - lineEq.d) / (lineEq.c - rayEq.c);
+        point.y = rayEq.c * point.x + rayEq.d;
+    } else if (rayEq.c !== null) {
+        point.x = lineStart.x;
+        point.y = rayEq.c * point.x + rayEq.d;
+    } else if (lineEq.c !== null) {
+        point.x = rayStart.x;
+        point.y = lineEq.c * rayStart.x + lineEq.d;
+    } else {
+        return null;
+    }
+    lineVec.x = lineEnd.x - lineStart.x;
+    lineVec.y = lineEnd.y - lineStart.y;
+    var k = -1;
+    if (lineVec.x != 0) k = (point.x - lineStart.x) / lineVec.x;
+    else if (lineVec.y != 0) k = (point.y - lineStart.y) / lineVec.y;
+    return {
+        point: point,
+        coef: k
+    };
 }
 
 function Point(x,y) {

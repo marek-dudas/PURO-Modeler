@@ -10,6 +10,7 @@ var PuroEditor = {
 	//this.view.updateOBMList(obmListTableElement);
 	//this.view.startLayout();
 	this.view.updateView();
+      this.view.updateOBMList();
 	
 	gup = function( name )
 	{
@@ -29,11 +30,9 @@ var PuroEditor = {
 		if(modelId!=null) this.control.loadModel(modelId);
 	},
 	
-	setUserAndLoad: function(data) {
-		if(data.validSession) {
-			  this.control.setUser(data.user, data.pass);
+	setUserAndLoad: function(user) {
+			  this.control.setUser(user);
 			  this.view.updateOBMList(obmListTableElement);
-		  }
 	},
   
   loginUserFromUrl: function() {

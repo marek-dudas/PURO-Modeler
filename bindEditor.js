@@ -5,5 +5,4 @@ PuroEditor.init(
 	1100,900
 );
 
-PuroEditor.loginUserFromUrl();
 PuroEditor.loadModelFromUrl();

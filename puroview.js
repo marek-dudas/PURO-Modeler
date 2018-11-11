@@ -31,13 +31,14 @@ function PuroView(width, height, viewingElement){
 	this.svg.append('svg:defs').append('svg:marker')
 	    .attr('id', 'start-arrow')
 	    //.attr('viewBox', '0 -5 10 10')
-	    .attr('refX', 4)
+        .attr('refX', 0)
+        .attr('refY', 6)
 	    .attr('markerWidth', 13)
 	    .attr('markerHeight', 13)
 	    .attr('orient', 'auto')
   	.append('svg:path')
     	.attr('d', 'M10,0L0,6L10,10')
-    	.attr('fill', '#000');
+    	.attr('fill', '#ccc');
     	
     this.svg.append('svg:defs').append('filter')
     	.attr('id', 'blur-filter').append('feGaussianBlur')
@@ -299,6 +300,14 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
     this.switchAdvanced = new mdc.switchControl.MDCSwitch(document.querySelector('#switchDivAdvanced'));
 	this.switchAdvanced.checked = false;
 	this.switchAdvanced.listen('change', function () {view.showAdvanced(view.switchAdvanced.checked);} );
+
+	this.loginDlg = new mdc.dialog.MDCDialog(document.querySelector('#dlgLogin'));
+    this.loggedInDlg = new mdc.dialog.MDCDialog(document.querySelector('#dlgLoggedIn'));
+
+	$('#btnLoggedIn').hide();
+    $('#btnSave').hide();
+	$('#btnLoggedIn').click(function () {view.loggedInDlg.open();});
+	$('#btnLogin').click(function () {view.loginDlg.open();});
 };
 
 PuroView.prototype.decorateEditorControls = function(puroControl) {
@@ -328,40 +337,38 @@ PuroView.prototype.decorateModelingControls = function(puroControl) {
 	d3.select("#btnUpdateOWL").on("click", function(){puroControl.updateOFM();});
 };
 
-PuroView.prototype.updateOBMList = function(listElement) {
-	if(listElement!=null) this.obmListElement = listElement;
+PuroView.prototype.updateOBMList = function() {
+	this.obmListElement = 'divModelsList';
 	this.puroCtrl.getOBMs();
 };
 	
 PuroView.prototype.fillOBMList = function(obms) {
 	var table = d3.select("#"+this.obmListElement);
-	table.selectAll("tr").remove();
+	table.selectAll("li").remove();
 	var ctrl = this.puroCtrl;
-	for(var i=0; i<obms.length; i++) {
-		//var obm = this.purobms[i].doc
-		var tr = table.append("tr");
-		tr.append("td").append("input")
-		.classed("button", true)
-		.attr("id",obms[i]._id)
-		.attr("type","button")
-		.attr("value", obms[i].name+" by "+obms[i].author)
-		.on("click", function(){
-			ctrl.loadModel(this.id);});
-		tr.append("td").attr("align", "right")
-		.append("input")
-		.classed("button", true)
-		.attr("modelid",obms[i]._id)
-		.attr("modelname", obms[i].name)
-		.attr("type", "button")
-		.attr("value", "x")
-		.on("click", function() {
-			var confirmation = true;
-			if(this.attributes.modelname) confirmation = confirm("Do you really want to delete model "+this.attributes.modelname.value+"?");
-			var idToDelete = this.attributes.modelid.value;
-			if(confirmation) ctrl.deleteModel(idToDelete);
-		});
-	}
-	this.updateSize();
+    for(var i=0; i<obms.length; i++) {
+        //var obm = this.purobms[i].doc
+        var tr = table.append("li")
+			.classed('mdc-list-item', true)
+            .attr("id",obms[i]._id)
+            .on("click", function(){
+                ctrl.loadModel(this.id);})
+            .text(obms[i].name);
+        tr.append("a")
+            .classed("mdc-list-item__meta", true)
+            .classed("material-icons", true)
+            .text('delete')
+            .attr("modelid",obms[i]._id)
+            .attr("modelname", obms[i].name)
+            .on("click", function() {
+                d3.event.stopPropagation();
+                var confirmation = true;
+                if(this.attributes.modelname) confirmation = confirm("Do you really want to delete model "+this.attributes.modelname.value+"?");
+                var idToDelete = this.attributes.modelid.value;
+                if(confirmation) ctrl.deleteModel(idToDelete);
+            });
+    }
+    this.updateSize();
 };
 
 PuroView.prototype.setData = function(model) {
@@ -402,7 +409,7 @@ PuroView.prototype.tick = function() {
 
 PuroView.prototype.setDraggedNode = function(node) {
 	
-	this.dragSvg = d3.select("#canvas").append("svg").style("position", "absolute")
+	this.dragSvg = d3.select("body").append("svg").style("position", "absolute")
 				.style("z-index", 1000)
 				.attr("overflow", "visible")
 				.attr("width", node.width)
@@ -457,7 +464,7 @@ PuroView.prototype.showDelButton = function (node, nodeElement) {
 
 PuroView.prototype.hideNodeControls = function () {
 	$('#btnDel').hide();
-	if(this.creationLink) this.creationLink.hide();
+	if(this.creationLink && !this.creationLink.endNode) this.creationLink.hide();
 };
 
 PuroView.prototype.updateView = function() {

@@ -12,6 +12,7 @@
 	
 		<script>
 			require(["dojo/parser", "dijit/Dialog"]); //, "dijit/form/Button", "dijit/form/TextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox"
+			1064221756456-3qi62lgogm664o4lf9nh3atck4lcc5h4.apps.googleusercontent.com
 		</script> -->
 
 		<link rel="stylesheet" href="purom.css">
@@ -19,6 +20,9 @@
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<link rel="stylesheet" href="mdc-adjust.css">
 
+		<meta name="google-signin-scope" content="email">
+		<meta name="google-signin-client_id" content="756530396830-q4jskj4r11buuj41csvv0fmb62860596.apps.googleusercontent.com">
+		<script src="https://apis.google.com/js/platform.js"></script>
 	
 		<script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
 	    <script src="d3.v3.js"></script>
@@ -40,21 +44,22 @@
 
     </head>
     <body class="mdc-typography"><aside class="mdc-drawer mdc-drawer--dismissible">
+		<div class="mdc-drawer__header">
+			<h3 class="mdc-drawer__title">PURO Modeler</h3>
+			<h6 class="mdc-drawer__subtitle">Models</h6>
+			<button id="btnNew" class="mdc-button mdc-button--raised " data-mdc-auto-init="MDCRipple">Create new</button>
+
+		</div>
 			<div class="mdc-drawer__content">
-				<div class="mdc-list">
-					<a class="mdc-list-item mdc-list-item--activated" href="#" aria-selected="true">
-						<i class="material-icons mdc-list-item__graphic" aria-hidden="true">inbox</i>
-						<span class="mdc-list-item__text">Inbox</span>
-					</a>
-					<a class="mdc-list-item" href="#">
-						<i class="material-icons mdc-list-item__graphic" aria-hidden="true">send</i>
-						<span class="mdc-list-item__text">Outgoing</span>
-					</a>
-					<a class="mdc-list-item" href="#">
-						<i class="material-icons mdc-list-item__graphic" aria-hidden="true">drafts</i>
-						<span class="mdc-list-item__text">Drafts</span>
-					</a>
-				</div>
+				<h6 class="mdc-list-group__subheader">My models</h6>
+				<ul class="mdc-list" id="divModelsList">
+
+				</ul>
+				<hr class="mdc-list-divider">
+				<h6 class="mdc-list-group__subheader">Example models</h6>
+				<ul class="mdc-list" id="divExamplesList">
+
+				</ul>
 			</div>
 		</aside>
 		<div class="mdc-drawer-app-content">
@@ -62,11 +67,13 @@
 				<div class="mdc-top-app-bar__row">
 					<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
 						<a href="#" class="material-icons mdc-top-app-bar__navigation-icon">menu</a>
-						<span id="modelname1" class="mdc-top-app-bar__title">Title</span>
+						<span id="modelname" class="mdc-top-app-bar__title">Unnamed PURO model</span>
 					</section>
 					<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
 						<button id="btnLogin" class="mdc-button mdc-button--flat mdc-theme--on-primary" data-mdc-auto-init="MDCRipple">Login</button>
+						<button id="btnSave" class="mdc-button mdc-button--flat mdc-theme--on-primary" data-mdc-auto-init="MDCRipple">Save model</button>
 						<button id="btnMorph" class="mdc-button mdc-button--flat mdc-theme--on-secondary" data-mdc-auto-init="MDCRipple">Build ontology</button>
+						<a href="#" id="btnLoggedIn" class="material-icons mdc-top-app-bar__action-item">person</a>
 						<a href="#" id="btnMenu" class="material-icons mdc-top-app-bar__action-item" aria-label="Menu" alt="Menu">more_vert</a>
 					</section>
 				</div>
@@ -96,6 +103,53 @@
 			</ul>
 		</div>
 		<button class="mdc-icon-button material-icons del-button" id="btnDel">delete_forever</button>
+
+	<div class="mdc-dialog"
+		 role="alertdialog"
+		 aria-modal="true"
+		 aria-labelledby="my-dialog-title"
+		 aria-describedby="my-dialog-content"
+	id="dlgLogin">
+		<div class="mdc-dialog__container">
+			<div class="mdc-dialog__surface">
+				<!-- Title cannot contain leading whitespace due to mdc-typography-baseline-top() -->
+				<h2 class="mdc-dialog__title" id="my-dialog-title"><!--
+     -->Please login with Google account<!--
+   --></h2>
+				<div class="mdc-dialog__content" id="my-dialog-content">
+					<span class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></span>
+				</div>
+				<footer class="mdc-dialog__actions">
+					<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="yes">Close</button>
+				</footer>
+			</div>
+		</div>
+		<div class="mdc-dialog__scrim"></div>
+	</div>
+
+	<div class="mdc-dialog"
+		 id="dlgLoggedIn"
+		 role="alertdialog"
+		 aria-modal="true"
+		 aria-labelledby="my-dialog-title"
+		 aria-describedby="my-dialog-content">
+		<div class="mdc-dialog__container">
+			<div class="mdc-dialog__surface">
+				<!-- Title cannot contain leading whitespace due to mdc-typography-baseline-top() -->
+				<h2 class="mdc-dialog__title"><!--
+     -->Logged in<!--
+   --></h2>
+				<div class="mdc-dialog__content">
+					You are logged in as <span id="spanUser"></span>.
+				</div>
+				<footer class="mdc-dialog__actions">
+					<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="yes">Close</button>
+				</footer>
+			</div>
+		</div>
+		<div class="mdc-dialog__scrim"></div>
+	</div>
+
 	</body>
 	<script>
         mdc.autoInit();
@@ -105,6 +159,11 @@
         topAppBar.listen('MDCTopAppBar:nav', () => {
             drawer.open = !drawer.open;
         });
+        onSignIn = function (googleUser) {
+            if(googleUser.getBasicProfile()) {
+                PuroEditor.setUserAndLoad(googleUser.getBasicProfile().getEmail());
+            }
+		}
 	</script>
     <script src="bindEditor.js"></script>
 </html>
