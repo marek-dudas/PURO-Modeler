@@ -297,10 +297,6 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 
 	})
 
-    this.switchAdvanced = new mdc.switchControl.MDCSwitch(document.querySelector('#switchDivAdvanced'));
-	this.switchAdvanced.checked = false;
-	this.switchAdvanced.listen('change', function () {view.showAdvanced(view.switchAdvanced.checked);} );
-
 	this.loginDlg = new mdc.dialog.MDCDialog(document.querySelector('#dlgLogin'));
     this.loggedInDlg = new mdc.dialog.MDCDialog(document.querySelector('#dlgLoggedIn'));
 
@@ -308,6 +304,14 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
     $('#btnSave').hide();
 	$('#btnLoggedIn').click(function () {view.loggedInDlg.open();});
 	$('#btnLogin').click(function () {view.loginDlg.open();});
+
+    if (!PuroAppSettings.modelingStyleBoxEnabled) {
+        this.switchAdvanced = new mdc.switchControl.MDCSwitch(document.querySelector('#switchDivAdvanced'));
+        this.switchAdvanced.checked = false;
+        this.switchAdvanced.listen('change', function () {
+            view.showAdvanced(view.switchAdvanced.checked);
+        });
+    }
 };
 
 PuroView.prototype.decorateEditorControls = function(puroControl) {
@@ -338,8 +342,10 @@ PuroView.prototype.decorateModelingControls = function(puroControl) {
 };
 
 PuroView.prototype.updateOBMList = function() {
-	this.obmListElement = 'divModelsList';
-	this.puroCtrl.getOBMs();
+	if(!PuroAppSettings.modelingStyleBoxEnabled) {
+        this.obmListElement = 'divModelsList';
+        this.puroCtrl.getOBMs();
+    }
 };
 	
 PuroView.prototype.fillOBMList = function(obms) {
@@ -489,6 +495,7 @@ PuroView.prototype.updateView = function() {
 	        	puroControl.canvasMouseDown(d3.mouse(this), d);}
 	        )
 		.on("mouseover", function(d){
+			if(!PuroAppSettings.modelingStyleBoxEnabled)
             view.showDelButton(d, this);
 		})
      .on('dblclick', function(d){
@@ -565,8 +572,10 @@ PuroView.prototype.updateView = function() {
     			  text.selectSubString(0,0);
     			})
 			.on('mouseover', function(d) {
-				if (!view.creationLink || !view.creationLink.dragging) view.showCreationLink(d);
-				view.showDelButton(d, this);
+				if (!PuroAppSettings.modelingStyleBoxEnabled) {
+                    if (!view.creationLink || !view.creationLink.dragging) view.showCreationLink(d);
+                    view.showDelButton(d, this);
+                }
 			})
 	        .call(node_drag)
 	        .each(function (d) {d3.select(this).classed(d.type, true);})

@@ -27,7 +27,7 @@ var PuroEditor = {
   
 	loadModelFromUrl: function() {
 		var modelId = gup('model');
-		if(modelId!=null) this.control.loadModel(modelId);
+		if(modelId!=null && modelId!='null') this.control.loadModel(modelId);
 	},
 	
 	setUserAndLoad: function(user) {

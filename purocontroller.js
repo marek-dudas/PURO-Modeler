@@ -14,11 +14,13 @@ function PuroController(model){
 
 PuroController.prototype.init = function () {
 	var ctrl = this;
-    this.menuLinkTypes = new mdc.menu.MDCMenu(document.querySelector('#menuLinkType'));
-    this.menuLinkTypes.listen('MDCMenu:selected', function (data) {
-    	ctrl.linkTypeSelected(data.detail.index);
-	});
-    this.menuLinkTypesItems = d3.select('#menuLinkTypeItems');
+	if(!PuroAppSettings.modelingStyleBoxEnabled) {
+        this.menuLinkTypes = new mdc.menu.MDCMenu(document.querySelector('#menuLinkType'));
+        this.menuLinkTypes.listen('MDCMenu:selected', function (data) {
+            ctrl.linkTypeSelected(data.detail.index);
+        });
+        this.menuLinkTypesItems = d3.select('#menuLinkTypeItems');
+    }
 };
 
 PuroController.prototype.linkTypeSelected = function (index) {
@@ -541,8 +543,10 @@ PuroController.prototype.getCurrentUser = function () {
 };
 
 PuroController.prototype.updateOBMs = function() {
-	this.getOBMs();
-	this.view.updateView();
+	if(!PuroAppSettings.modelingStyleBoxEnabled) {
+        this.getOBMs();
+        this.view.updateView();
+    }
 }
 
 PuroController.prototype.getOBMs = function() {
