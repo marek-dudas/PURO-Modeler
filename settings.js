@@ -1,4 +1,4 @@
-var serverRoot = "http://lod2-dev.vse.cz/puromodeler-v3.5/";
+var serverRoot = "http://protegeserver.cz/purom4/";
 
 var couchdbUrl = "http://admin:c0d1988@protegeserver.cz/couchdb/puromodels/"; //"http://localhost/couchdb/puromodels2/";//"http://admin:c0d1988@lod2-dev.vse.cz/couchdb/puromodels2/"; //"http://localhost/couchdb/puromodels/""http://user:pasword@protegeserver.cz/couchdb";
 
@@ -32,7 +32,7 @@ var PuroAppSettings = {
 		modelingStyleBoxEnabled: false,
 		mappingBoxEnabled: false,
 		vocabVisualizationEnabled: true,
-		debug: true,
+		debug: false,
 		loadDebugJson: true,
 		setEditorFunctionality: function() {
 			this.vocabComparisonEnabled = true;

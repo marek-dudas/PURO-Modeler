@@ -58,7 +58,6 @@
 	}
     
     //run the transformation
-    $transformation_url = "http://owl.vse.cz:8080/OBOWLMorphTransformation/transform1";
     $transformation_data = "puro-model=$webUrl$purom_filename&"
     		."transformation-pattern=$patternsUrl/2rel_to_classMembership.txt&"
     		."transformation-pattern=$patternsUrl/2rel_to_dataProp.txt&"
