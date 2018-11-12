@@ -109,6 +109,7 @@ PuroController.prototype.newNode = function(node, location){
 	node.y = location[1];
 	this.model.addNode(node);
 	this.model.validate();
+    this.saveModel();
 	this.view.updateView();
 };
 
@@ -433,8 +434,8 @@ PuroController.prototype.updateOFM = function() {
 		ofmUrls = dojox.json.ref.fromJson(data);
 		if(ofmUrls != null && ofmUrls.length>0) {
 			d3.select("#vowlFrame").property("src", ofmUrls[0].vowlUrl);
-			d3.select("#ofmDownloadLink").property("href", ofmUrls[0].downloadUrl);
-			d3.select("#ofmVisualLink").property("href", ofmUrls[0].vowlUrl);
+			d3.select("#ofmDownloadLink").attr("data-link", ofmUrls[0].downloadUrl);
+			d3.select("#ofmVisualLink").attr("data-link", ofmUrls[0].vowlUrl);
 		}
 	};
 	PuroRdfSerializer.getOFMVisualizationUrl(this.model, processTransformResponse);
@@ -530,6 +531,7 @@ PuroController.prototype.setUser = function(user, pass) {
 	this.pass = pass;
 	$('#btnLogin').hide();
 	$('#btnSave').show();
+	$('#btnMorph').show();
 	$('#btnLoggedIn').show();
 	$('#spanUser').text(user);
 };

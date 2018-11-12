@@ -63,6 +63,7 @@ function PuroView(width, height, viewingElement){
 	  .scaleExtent([0.1, 2])
 	  .on("zoom", zoomHandler);
 	  //.on("dblclick.zoom", function(){});
+	this.zoomListener = zoomListener;
 	
 	var mainG = this.svg;
 	// function for handling zoom event
@@ -230,13 +231,27 @@ PuroView.prototype.updateSize = function() {
 	//var currentSize = this.viewingElement.node().getBoundingClientRect();
 	var canvasRect = $('#canvas')[0].getBoundingClientRect();
     var currentSize = {
-    	height: $(window).height() - canvasRect.top,
-		width: canvasRect.width + 12
+    	height: canvasRect.height,
+		width: canvasRect.width
     };
 	this.rootSvg.attr("width", currentSize.width).attr("height", currentSize.height); // -12
 	this.layout.size([currentSize.width, currentSize.height]);
 	this.width = currentSize.width;
 	this.height = currentSize.height;
+
+	if(this.model && this.model.nodes && this.model.nodes.length > 0) {
+        let b = {top: Number.MAX_VALUE, left: Number.MAX_VALUE, bottom: Number.MIN_VALUE, right: Number.MIN_VALUE};
+        for (let n of this.model.nodes) {
+            if (n.x < b.left) b.left = n.x;
+            if (n.x > b.right) b.right = n.x;
+            if (n.y < b.top) b.top = n.y;
+            if (n.y > b.bottom) b.bottom = n.y;
+        }
+        b.center = {x: b.left + (b.right - b.left) / 2, y: b.top + (b.bottom - b.top) / 2};
+
+        this.zoomListener.translate([this.width / 2 - b.center.x, $(window).height() / 2 - b.center.y]);
+        this.zoomListener.event(this.rootSvg);
+    }
 };
 
 PuroView.prototype.startLayout = function() {
@@ -309,6 +324,7 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 
 	$('#btnLoggedIn').hide();
     $('#btnSave').hide();
+    $('#btnMorph').hide();
 	$('#btnLoggedIn').click(function () {view.loggedInDlg.open();});
 	$('#btnLogin').click(function () {view.loginDlg.open();});
 
@@ -317,6 +333,18 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
         this.switchAdvanced.checked = false;
         this.switchAdvanced.listen('change', function () {
             view.showAdvanced(view.switchAdvanced.checked);
+        });
+    }
+    else {
+        var mainMenu = new mdc.menu.MDCMenu(document.querySelector('#mainMenu'));
+        $('#btnMainMenu').click(function () {
+            mainMenu.open = true;
+        });
+        $('#ofmDownloadLink').click(function () {
+            window.open($(this).attr('data-link'), '_blank')
+        });
+        $('#ofmVisualLink').click(function () {
+            window.open($(this).attr('data-link'), '_blank')
         });
     }
 };
@@ -599,7 +627,7 @@ PuroView.prototype.updateView = function() {
 	    	.text(function(d) { return d.name; })	    	
       		.style("font-size", function(d) { 
       			return Math.max(Math.min(16, Math.min(d.width, (d.width - 8) 
-      			/ this.getComputedTextLength() * 14)), 13) + "px"; })      			
+      			/ this.getComputedTextLength() * 14)), 14) + "px"; })
 			.attr("x","0")//function(d) {return d.width/2+2;})
 			.attr("y","0") 
 		     .attr("dx", 1)

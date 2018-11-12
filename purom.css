@@ -1,5 +1,6 @@
 text {
-    font: 16px Helvetica Neue, Helvetica, Arial, sans-serif;
+    font: 15px Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-weight: bold;
     text-anchor: middle;
     pointer-events: none;
     -webkit-touch-callout: none; /* iOS Safari */

@@ -531,13 +531,15 @@ PuroModel.prototype.linksLinkedToNode = function(node) {
 }
 
 PuroModel.prototype.validate = function() {
+	// debug / turned off
+	return null;
 	for(var i=0; i<this.nodes.length; i++) this.nodes[i].errors.init();
 	for(var i=0; i<this.links.length; i++) {
 		this.links[i].errors.init();
 	}
 	for(var i=0; i<this.nodes.length; i++) {
 		var node = this.nodes[i];
-		if(node instanceof BValuation) {
+		if(node instanceof BAttribute) {
 			var linked = this.linksLinkedToNode(this.nodes[i]);
 			for(var l=0; l<linked.length; l++) {
 				if(linked[l].name == "") linked[l].errors.setError(purostr.errorLabelMiss);
@@ -587,7 +589,7 @@ LinkRules = {
         }
         else if (l.startNode instanceof BRelation) {
             if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
-            if (l.endNode instanceof BObject || l.endNode instanceof BType || l.endNode instanceof SomeObjects) possibleLinks.push(linkTypes.participates);
+            if (l.endNode instanceof BObject || l.endNode instanceof BType || l.endNode instanceof SomeObjects || l.endNode instanceof BRelation) possibleLinks.push(linkTypes.participates);
             if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
         }
         else if (l.startNode instanceof BType) {

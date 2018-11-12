@@ -132,6 +132,7 @@
             width: 49vw;
             height: 85vh;
             margin: 10px;
+            overflow: hidden;
         }
 
         .vowlCard {
@@ -159,10 +160,20 @@
                             title="Find vocabularies covering some parts of the model">Vocabulary search</button>
                     <button value="Update OWL Representation" id="btnUpdateOWL"
                             class="mdc-button mdc-button--flat mdc-theme--on-primary" title="Update OWL representation">Update OWL</button>
-                    <a href="" id="ofmDownloadLink" download="ontology.nt">Download OWL</a>&nbsp
-                    <a href="" id="ofmVisualLink" target="_blank">Open VOWL in new window</a>
                     <a href="#" id="btnLoggedIn" class="material-icons mdc-top-app-bar__action-item">person</a>
-                    <a href="#" id="btnMenu" class="material-icons mdc-top-app-bar__action-item" aria-label="Menu" alt="Menu">more_vert</a>
+                    <div class="mdc-menu-surface--anchor">
+                        <a href="#" id="btnMainMenu" class="material-icons mdc-top-app-bar__action-item" aria-label="Menu" alt="Menu">more_vert</a>
+                        <div class="mdc-menu mdc-menu-surface" id="mainMenu">
+                            <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
+                                <li id="ofmDownloadLink" class="mdc-list-item" role="menuitem">
+                                    <span class="mdc-list-item__text">Download OWL</span>
+                                </li>
+                                <li id="ofmVisualLink" class="mdc-list-item" role="menuitem">
+                                     <span>Open VOWL in new window</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </section>
             </div>
         </header>
