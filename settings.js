@@ -32,7 +32,7 @@ var PuroAppSettings = {
 		modelingStyleBoxEnabled: false,
 		mappingBoxEnabled: false,
 		vocabVisualizationEnabled: true,
-		debug: false,
+		debug: true,
 		loadDebugJson: true,
 		setEditorFunctionality: function() {
 			this.vocabComparisonEnabled = true;

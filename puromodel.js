@@ -467,19 +467,25 @@ PuroModel.prototype.updateBTypeLevels = function () {
 	var nodeStack = Array();
 	this.ttl = 100;
 	for(var n=0; n<this.nodes.length; n++) {
-		this.nodes[n].level = 0;
-		var isInstanceOf = false;
-		var noIncoming = true;
-		for(var link=0; link<this.links.length; link++) {
-			if(this.links[link] instanceof InstanceOfLink && this.links[link].start == this.nodes[n])
-				isInstanceOf = true;
-			if((this.links[link] instanceof InstanceOfLink || this.links[link] instanceof SubTypeOfLink) && this.links[link].end == this.nodes[n])
-				noIncoming = false;
-		}
-		if(isInstanceOf && noIncoming) nodeStack.push(this.nodes[n]);
+		if(this.nodes[n] instanceof BType) {
+            this.nodes[n].level = 1;
+            var isInstanceOf = false;
+            var noIncoming = true;
+            for (var link = 0; link < this.links.length; link++) {
+                if (this.links[link] instanceof InstanceOfLink && this.links[link].start == this.nodes[n])
+                    isInstanceOf = true;
+                if ((this.links[link] instanceof InstanceOfLink || this.links[link] instanceof SubTypeOfLink) && this.links[link].end == this.nodes[n] && this.links[link].start instanceof BType)
+                    noIncoming = false;
+                if ((this.links[link] instanceof InstanceOfLink) && this.links[link].end == this.nodes[n] && this.links[link].start instanceof BRelation)
+                	this.nodes[n].level = 'R';
+                if ((this.links[link] instanceof InstanceOfLink) && this.links[link].end == this.nodes[n] && this.links[link].start instanceof BAttribute)
+                    this.nodes[n].level = 'A';
+            }
+            if (isInstanceOf && noIncoming) nodeStack.push(this.nodes[n]);
+        }
 	}
 	for(var n=0; n<nodeStack.length; n++) {
-		if(nodeStack[n] instanceof BType ) nodeStack[n].level = 1;
+		// if(nodeStack[n] instanceof BType ) nodeStack[n].level = 1;
 		this.updateBLevelsFrom(nodeStack[n]);
 	}
 	
@@ -570,7 +576,7 @@ PuroModel.prototype.validate = function() {
 LinkRules = {
     possibleLinkTypes: function (l) {
         var possibleLinks = [];
-        if (l.startNode instanceof BObject) {
+        if (l.startNode instanceof BObject || l.startNode instanceof SomeObjects) {
             if (l.endNode instanceof BRelation) possibleLinks.push(linkTypes.participates);
             if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
             if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
@@ -581,7 +587,7 @@ LinkRules = {
         }
         else if (l.startNode instanceof BRelation) {
             if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
-            if (l.endNode instanceof BObject || BType) possibleLinks.push(linkTypes.participates);
+            if (l.endNode instanceof BObject || l.endNode instanceof BType || l.endNode instanceof SomeObjects) possibleLinks.push(linkTypes.participates);
             if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
         }
         else if (l.startNode instanceof BType) {
@@ -594,7 +600,19 @@ LinkRules = {
             if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
         }
         return possibleLinks;
-    }
+    },
+	mayHaveOutlink: function (node) {
+    	if (node instanceof BValuation) return false;
+    	else return true;
+	},
+	hasEndArrow: function (link) {
+    	if(link.end instanceof BRelation) {
+    		if(link.start instanceof BRelation) return true;
+    		else return false;
+		}
+		if(link.end instanceof BAttribute) return false;
+    	return true;
+	}
 }
 
 var Mapping = {

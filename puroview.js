@@ -192,31 +192,38 @@ function CreationLink (inSvg) {
 }
 
 PuroView.prototype.showCreationLink = function (fromNode) {
-	var otherNodes = this.model.nodes.slice(0);
-	otherNodes.splice(otherNodes.indexOf(fromNode),1);
-	if (!this.creationLink) {
-		this.creationLink = CreationLink(this.svg);
-		var puroView = this;
-        this.creationLink.getSvg().on("mousedown", function () {
-            d3.event.stopPropagation();
-        	puroView.creationLink.startDrag();
-        	puroView.rootSvg.on("mousemove", function() {
-        		var location = d3.mouse(puroView.svg.node());
-        		var mousePoint = {x: location[0], y: location[1]};
-        		var nearestNode = nearPoint(mousePoint, puroView.creationLink.otherNodes);
-        		if (nearestNode && pointDistance(mousePoint, nearestNode) < 150
-					&& LinkRules.possibleLinkTypes({startNode:puroView.creationLink.startNode, endNode: nearestNode}).length>0) puroView.creationLink.stickToNode(nearestNode);
-        		else puroView.creationLink.setEnd(mousePoint);
+	if(LinkRules.mayHaveOutlink(fromNode)) {
+        var otherNodes = this.model.nodes.slice(0);
+        otherNodes.splice(otherNodes.indexOf(fromNode), 1);
+        if (!this.creationLink) {
+            this.creationLink = CreationLink(this.svg);
+            var puroView = this;
+            this.creationLink.getSvg().on("mousedown", function () {
+                d3.event.stopPropagation();
+                puroView.creationLink.startDrag();
+                puroView.rootSvg.on("mousemove", function () {
+                    var location = d3.mouse(puroView.svg.node());
+                    var mousePoint = {x: location[0], y: location[1]};
+                    var nearestNode = nearPoint(mousePoint, puroView.creationLink.otherNodes);
+                    if (nearestNode && pointDistance(mousePoint, nearestNode) < 150
+                        && LinkRules.possibleLinkTypes({
+                            startNode: puroView.creationLink.startNode,
+                            endNode: nearestNode
+                        }).length > 0) {
+                        puroView.creationLink.stickToNode(nearestNode);
+                    }
+                    else puroView.creationLink.setEnd(mousePoint);
+                });
+                puroView.rootSvg.on("mouseup", function () {
+                    if (puroView.creationLink.endNode) puroView.puroCtrl.creationLinkMouseUp(puroView.creationLink);
+                    else puroView.creationLink.hide();
+                    puroView.rootSvg.on("mouseup", null);
+                    puroView.rootSvg.on("mousemove", null);
+                });
             });
-        	puroView.rootSvg.on("mouseup", function() {
-        		if (puroView.creationLink.endNode) puroView.puroCtrl.creationLinkMouseUp(puroView.creationLink);
-        		else puroView.creationLink.hide();
-        		puroView.rootSvg.on("mouseup", null);
-        		puroView.rootSvg.on("mousemove", null);
-			});
-		});
+        }
+        this.creationLink.setStartNode(fromNode, otherNodes);
     }
-	this.creationLink.setStartNode(fromNode, otherNodes);
 };
 
 PuroView.prototype.updateSize = function() {
@@ -485,7 +492,7 @@ PuroView.prototype.updateView = function() {
 	        .style("stroke", function(d) {return (d.errors.hasError)?"#f00":"#ccc";})
 	        .style("stroke-width", 2)
 		    .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
-		    .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
+		    .style('marker-end', function(d) { return LinkRules.hasEndArrow(d) ? 'url(#end-arrow)' : ''; })
 		    .style("stroke-dasharray", function(d) {return d.dashed();});
 		    
 		    

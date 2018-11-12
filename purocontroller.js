@@ -960,6 +960,7 @@ BRelation.prototype.linkIntersection = function(link, nearTo){
 };
 
 BAttribute.prototype.linkIntersection = function(link, nearTo){
+	var width = this.width;
     var lines = [
         new Line(new Point(this.x-this.width/2, this.y), new Point(this.x-width/4, this.y-this.height/2)),
         new Line(new Point(this.x-width/4, this.y-this.height/2), new Point(this.x+width/4, this.y-this.height/2)),
