@@ -578,24 +578,24 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 	var rStep = 3;
 	var radius = vocabHighlightRadius + this.model.vocabs.indexOf(vocab)*rStep;
 	var coef = 5;
+
+    const modelBox = this.model.getBoundingBox();
+    const offsetX = modelBox.left - radius*2*coef;
+    const offsetY = modelBox.top - radius*2*coef;
 	
-	toMatrix = function(coord) {return Math.round(coord/coef+radius);};
-	ptFromMatrix = function(point) {return new Point((point.x-radius)*coef, (point.y-radius)*coef);};
+	var toMatrix = function(point) {return new Point(Math.round((point.x-offsetX)/coef), Math.round((point.y-offsetY)/coef));};
+	var ptFromMatrix = function(point) {return new Point(point.x*coef+offsetX, point.y*coef+offsetY);};
+    var mWidth = (modelBox.right - modelBox.left)/coef + radius*5; // toMatrix(this.view.width)+radius*2;
+    var mHeight = (modelBox.bottom - modelBox.top)/coef + radius*5; //  toMatrix(this.view.height)+radius*2;
 	
-	ptToMatrix = function(point) {
-		matrixPt = {};
-		matrixPt.x = toMatrix(point.x);
-		matrixPt.y = toMatrix(point.y);
-		return matrixPt;
-	};
+	var ptToMatrix = toMatrix;
 	
 	
 	//var matrix = [];
-	var mWidth = toMatrix(this.view.width)+radius*2;
-	var mHeight = toMatrix(this.view.height)+radius*2;
 	
 	var M = {};
 	M.matrix = [];
+	M.debugPts = [];
 	
 	for(var i=0; i<mWidth+1; i++) {
 		M.matrix[i] = [];
@@ -618,7 +618,10 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 		var y=Math.round(_y);
 		if(x>=0 && x<M.matrix.length){
 			if(!(typeof M.matrix[x] === "undefined")) {
-				if(y>=0 && y<M.matrix[x].length) M.matrix[x][y]=val;
+				if(y>=0 && y<M.matrix[x].length) {
+					M.matrix[x][y]=val;
+					M.debugPts.push(ptFromMatrix(new Point(x,y)));
+                }
 			}
 			else(alert('undefined M.matrix[x] ...x='+x));
 		}		
@@ -756,7 +759,9 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 			
 			return true;
 		}
-		else return false;
+		else {
+			return false;
+        }
 	};
 	
 	var paths = [];
@@ -784,7 +789,10 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 		}
 	}*/
 	
-	return paths;
+	return {
+		paths: paths,
+		matrixPoints: M.debugPts
+    };
 };
 
 //ellipse a,b,x0,y0; line y=cx+d

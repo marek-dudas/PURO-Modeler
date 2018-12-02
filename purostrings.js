@@ -43,6 +43,7 @@ var puroOntology = {
 		BinstanceOf: "instanceOf",
 		BsubTypeOf: "subTypeOf",	
 		Battribute: "BAttribute",
-		link: "Link"
+		link: "Link",
+    someObjects: 'Some_objects'
 		
 };

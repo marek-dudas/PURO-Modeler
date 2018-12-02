@@ -85,6 +85,7 @@
 					
 			$xmlObject = simplexml_load_string($xmlMapping);
 			if ($xmlObject === false) {
+			    echo "mapping request: ".$mappingUrl.$fragmentUrl."&threshold=0.5";
 				echo "Failed loading XML: ";
 				foreach(libxml_get_errors() as $error) {
 					echo "<br>", $error->message;

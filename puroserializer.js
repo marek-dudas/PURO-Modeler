@@ -2,17 +2,21 @@ BTerm.prototype.rdfDefine = function() {
 	PuroRdfSerializer.defineBElement(this.getPuroTerm(), this.getRdfName(), this.getCURI(), this);
 };
 
+BAttribute.prototype.rdfDefine = function () {
+    PuroRdfSerializer.defineBElement(this.getPuroTerm(), this.getRdfName(), this.getCURI(), this);
+};
+
 BLink.prototype.rdfDefine = function() {
 	if(this.getRdfName() != "" && !(this.end instanceof BValuation) && !(this.end.getType() == "mapping"))
 		PuroRdfSerializer.defineBElement(puroOntology.link, this.getTrimmedName(), this.getCURI());
-	else if( this.end instanceof BValuation ) { //special treatment of attribute->valuation links
-		var attributeUri = "pm:"+this.getTrimmedName();
-		PuroRdfSerializer.defineBElement(puroOntology.Battribute, this.getTrimmedName(), attributeUri);
-		var valuationUri = "pm:"+this.getTrimmedName()+"_"+this.end.getRdfName();
-		PuroRdfSerializer.defineBElement(puroOntology.Bvaluation, this.getTrimmedName()+"_"+this.end.getRdfName(), valuationUri, this.end);
-		PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:linkedTo", valuationUri);
-		PuroRdfSerializer.addTriple(valuationUri, "puro:linkedTo", attributeUri);
-	}
+	// else if( this.end instanceof BValuation ) { //special treatment of attribute->valuation links
+	// 	var attributeUri = "pm:"+this.getTrimmedName();
+	// 	PuroRdfSerializer.defineBElement(puroOntology.Battribute, this.getTrimmedName(), attributeUri);
+	// 	var valuationUri = "pm:"+this.getTrimmedName()+"_"+this.end.getRdfName();
+	// 	PuroRdfSerializer.defineBElement(puroOntology.Bvaluation, this.getTrimmedName()+"_"+this.end.getRdfName(), valuationUri, this.end);
+	// 	PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:linkedTo", valuationUri);
+	// 	PuroRdfSerializer.addTriple(valuationUri, "puro:linkedTo", attributeUri);
+	// }
 };
 
 InstanceOfLink.prototype.rdfDefine = function() {
@@ -115,10 +119,26 @@ PuroRdfSerializer.upload = function(targetWindow) {
 		  });
 };
 
+function serializaAttribute (model, attribute) {
+	var inlink = null, outlink = null;
+    for(var i=0; i<model.links.length; i++) {
+        if (model.links[i].end === attribute) inlink = model.links[i];
+    	if (model.links[i].start === attribute) outlink = model.links[i];
+	}
+	if(inlink && outlink) {
+        var attributeUri = "pm:"+attribute.getRdfName();
+        PuroRdfSerializer.defineBElement(puroOntology.Battribute, attribute.getRdfName(), attributeUri);
+        var valuationUri = "pm:"+attribute.getRdfName()+"_"+outlink.end.getRdfName();
+        PuroRdfSerializer.defineBElement(puroOntology.Bvaluation, attribute.getRdfName()+"_"+outlink.end.getRdfName(), valuationUri, outlink.end);
+        PuroRdfSerializer.addTriple(inlink.start.getCURI(), "puro:linkedTo", valuationUri);
+        PuroRdfSerializer.addTriple(valuationUri, "puro:linkedTo", attributeUri);
+	}
+}
 
 PuroRdfSerializer.serialize = function(model) {
 for(var i=0; i<model.nodes.length; i++)
-	if(!(model.nodes[i] instanceof BValuation || model.nodes[i].getType()=="mapping")) model.nodes[i].rdfDefine();
+	if(model.nodes[i] instanceof BAttribute) serializaAttribute(model, model.nodes[i]);
+	else if(!(model.nodes[i] instanceof BValuation || model.nodes[i].getType()=="mapping")) model.nodes[i].rdfDefine();
 for(var i=0; i<model.links.length; i++)
 	model.links[i].rdfDefine();
 for(var i=0; i<model.links.length; i++)

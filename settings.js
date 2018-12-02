@@ -33,7 +33,7 @@ var PuroAppSettings = {
 		mappingBoxEnabled: false,
 		vocabVisualizationEnabled: true,
 		debug: true,
-		loadDebugJson: true,
+		loadDebugJson: false,
 		setEditorFunctionality: function() {
 			this.vocabComparisonEnabled = true;
 			this.obmToolboxEnabled = true;
@@ -60,7 +60,7 @@ if(PuroAppSettings.debug) {
 
 	obowlmorphServerUrl =  serverRoot+"/server/obowlmorph.php";//"http://localhost/puromodeler/server/obowlmorph.php";http://lod2-dev.vse.cz/puromodeler-v2/server/obowlmorph.php
 
-	mappingServerUrl =  serverRoot+"/server/mappings.php"
+	mappingServerUrl =  serverRoot+"/server/mappings.php";
 
 	couchLoginUrl =  serverRoot+"/puromodeler/server/login.php";
 

@@ -36,115 +36,6 @@
 		 <script src='../dojo/dojo.js' djConfig="isDebug: true, parseOnLoad: true"></script>
 		 
 		<!-- <script src='dojox/data/XmlStore.js'></script> -->
-	  	
-	  	
-	<style>	
-	
-		text {
-		  font: 16px Helvetica Neue, Helvetica, Arial, sans-serif;
-		  text-anchor: middle;
-		  pointer-events: none;
-		}
-		
-		circle {
-		  fill: #ccc;
-		}
-		
-		.node:hover circle {
-		  fill: #FFA500;
-		}
-				
-		.node path {
-			fill: #FFEECA;
-			cursor: pointer;
-			stroke: #ccc;
-			stroke-width: 1px;
-		}		
-		
-		.mapping path {
-			fill: #dddddd;
-			cursor: pointer;
-			stroke: #aaa;
-			stroke-width: 1px;			
-		}
-		
-		path.selected {
-			fill: #FFC125 !important;
-		}
-		
-		.selected path {
-			fill: #FFC125 !important;
-		}
-		
-		.node path:hover {
-			fill: #FFA500;
-		}
-		
-		.linklabelholder path {
-			opacity: 0.0;
-		}
-		
-		.linklabelholder text {
-			font-size: 14;
-			fill: #777777
-		}
-		
-		.typelabel text {
-			fill: #cccccc;
-		}
-		
-		text.vocabPath {
-			font-size: 14;
-			font-weight: bold;
-		}
-		
-		.vocabPath rect {
-			stroke-width:1;
-			stroke: #000000;
-		}
-		   
-		.roundbox {
-			-webkit-border-radius: 15px;
-			border-radius: 15px;
-			border: 6px #d6d6d6 solid;
-			
-			-moz-box-shadow: inset 0px 0px 13px 3px #d6d6d6;
-			-webkit-box-shadow: inset 0px 0px 13px 3px #d6d6d6;
-			box-shadow: inset 0px 0px 13px 3px #d6d6d6;
-		}
-		
-		.roundboxNoShadow {
-			-webkit-border-radius: 15px;
-			border-radius: 15px;
-			border: 6px #d6d6d6 solid;			
-		}
-		
-		.settingsPopUp {
-			-webkit-border-radius: 15px;
-			border-radius: 15px;
-			border: 6px #d6d6d6 solid;		
-			background: #cccccc; padding:5px; opacity:0.8;
-			color: black;
-			font-weight: bold;
-		}
-
-        .obmCard {
-            width: 49vw;
-            height: 85vh;
-            margin: 10px;
-            overflow: hidden;
-        }
-
-        .vowlCard {
-            width: 49vw;
-            height: 85vh;
-            margin: 10px;
-        }
-
-        .flexBox {
-            display: flex;
-        }
-	</style>
 
     </head>
     <body id="#body">
@@ -231,6 +122,24 @@
                 </div>
             </div>
             <div class="mdc-dialog__scrim"></div>
+        </div>
+
+        <div class="cardPopup mdc-elevation--z8"
+             id="nodeProps" class="settingsPopUp">
+            Modeling Style for the Selected Entity
+            <div id="modelingStyles"></div>
+            <!-- <br>
+            <input type="checkbox" id="chbPerdurant"> May change in time (anti-rigid) -->
+        </div>
+
+        <div class="cardPopup mdc-elevation--z8" id="nodeMappings" class="settingsPopUp">
+            Available mappings to vocabularies
+            <div id="mappingChoices"></div>
+        </div>
+
+        <div class="loadingPopup mdc-elevation--z8" id="mappingProgressDiv" class="settingsPopUp">
+            Working...
+            (It can take a minute, be patient.)
         </div>
     </body>
     <script type="text/javascript">

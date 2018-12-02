@@ -45,7 +45,7 @@
 		//echo "copying the model to protegeserver <br>";
 		$webUrl = "http://protegeserver.cz/purom/server/";
 		$debug_save_url = "http://protegeserver.cz/purom/server/savetempmodel.php";
-		$patternsUrl = "http://protegeserver.cz/purom/OBOWLMorph/patterns";
+		$patternsUrl = "http://protegeserver.cz/purom4/OBOWLMorph/patterns";
 		$ch = curl_init();   
 	    curl_setopt($ch,CURLOPT_URL,$debug_save_url);
 	    curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
@@ -73,6 +73,8 @@
     		."transformation-pattern=$patternsUrl/subType_to_subClass.txt&"
     		."transformation-pattern=$patternsUrl/cancel_multidomain.txt&"
     		."transformation-pattern=$patternsUrl/cancel_multirange.txt&"
+    		."transformation-pattern=$patternsUrl/nrelMember_MISO.txt&"
+    		."transformation-pattern=$patternsUrl/multiLevelClass_to_typeProp.txt&"
     		."transformation-pattern=$patternsUrl/fragment_annot.txt";
     
     $purom_file = fopen("transform-debug.txt", "w");

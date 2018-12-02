@@ -91,7 +91,7 @@ function BObject(name) {
 function SomeObjects(name) {
     BTerm.call(this,name);
     this.type=purostr.someObjects; //"B-object";
-    this.puroTerm = puroOntology.Bobject;
+    this.puroTerm = puroOntology.someObjects;
 }
 
 function BValuation(name) {
@@ -286,6 +286,19 @@ function PuroModel() {
 	this.vocabs = [];
 	this.created = Date.now();
 }
+
+
+PuroModel.prototype.getBoundingBox = function() {
+    let b = {top: Number.MAX_VALUE, left: Number.MAX_VALUE, bottom: Number.MIN_VALUE, right: Number.MIN_VALUE};
+    for (let n of this.nodes) {
+        if (n.x < b.left) b.left = n.x;
+        if (n.x > b.right) b.right = n.x;
+        if (n.y < b.top) b.top = n.y;
+        if (n.y > b.bottom) b.bottom = n.y;
+    }
+    b.center = {x: b.left + (b.right - b.left) / 2, y: b.top + (b.bottom - b.top) / 2};
+    return b;
+};
 
 PuroModel.prototype.propagateMapping = function(fromNode, mapping) {
 	if(fromNode instanceof BType) {

@@ -240,16 +240,9 @@ PuroView.prototype.updateSize = function() {
 	this.height = currentSize.height;
 
 	if(this.model && this.model.nodes && this.model.nodes.length > 0) {
-        let b = {top: Number.MAX_VALUE, left: Number.MAX_VALUE, bottom: Number.MIN_VALUE, right: Number.MIN_VALUE};
-        for (let n of this.model.nodes) {
-            if (n.x < b.left) b.left = n.x;
-            if (n.x > b.right) b.right = n.x;
-            if (n.y < b.top) b.top = n.y;
-            if (n.y > b.bottom) b.bottom = n.y;
-        }
-        b.center = {x: b.left + (b.right - b.left) / 2, y: b.top + (b.bottom - b.top) / 2};
+        const b = this.model.getBoundingBox();
 
-        this.zoomListener.translate([this.width / 2 - b.center.x, $(window).height() / 2 - b.center.y]);
+        this.zoomListener.translate([this.width / 2 - b.center.x, $(window).height() / 3 - b.center.y]);
         this.zoomListener.event(this.rootSvg);
     }
 };
@@ -566,7 +559,7 @@ PuroView.prototype.updateView = function() {
 
 	    function dragstart(d, i) {
 	        view.layout.stop(); // stops the force auto positioning before you start dragging
-			view.creationLink.hide();
+			if (view.creationLink) view.creationLink.hide();
 	        d3.event.sourceEvent.stopPropagation();
 	    }
 	
@@ -749,8 +742,9 @@ PuroView.prototype.drawVocabPaths = function() {
 		for(var i=0;i<this.model.vocabs.length; i++) {
 			if(this.puroCtrl.selectedVocabs.indexOf(this.model.vocabs[i])>=0)
 			{
-				paths = this.puroCtrl.createVocabPaths(this.model.vocabs[i]);
-				for(j=0;j<paths.length; j++){
+				var pathsConstruct = this.puroCtrl.createVocabPaths(this.model.vocabs[i]);
+				var paths = pathsConstruct.paths;
+				for(var j=0;j<paths.length; j++){
 					var labelPos = this.findBestLabelPos(textPositions, paths[j]);
 					textPositions.push(labelPos);
 					this.svg.append("path").classed("vocabPath", true).attr('filter', "url(#blur-filter)")
@@ -771,6 +765,17 @@ PuroView.prototype.drawVocabPaths = function() {
 					    .attr("height", bbox.height + (padding))
 					    .style("fill", "#eee");
 				}
+				// debug
+				// for (var m = 0; m < pathsConstruct.matrixPoints.length; m+=20) {
+				// 	var pt = pathsConstruct.matrixPoints[m];
+				// 	this.svg.append("rect")
+				// 		.classed('vocabPath', true)
+				// 		.attr("x", pt.x)
+				// 		.attr('y', pt.y)
+				// 		.attr('width', 10)
+				// 		.attr('height', 10)
+				// 		.style('fill', "#999");
+				// }
 			}
 	}
 	//}

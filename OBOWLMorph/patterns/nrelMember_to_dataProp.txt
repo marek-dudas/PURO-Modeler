@@ -30,7 +30,7 @@ WHERE
    
    FILTER ( EXISTS {?b puro:modelingStyle puro:dataProp} ) 
    
-  BIND(URI(CONCAT("http://owlfragment/entity/", ?d_label)) AS ?domainClass )
+  BIND(URI(CONCAT("http://owlfragment/entity/", UCASE(SUBSTR(?d_label,1,1)), SUBSTR(?d_label,2), "_Relation" )) AS ?domainClass )
   BIND(IF(?link_label != "", URI(CONCAT("http://owlfragment/entity/", ?link_label)), 
     URI(CONCAT("http://owlfragment/entity/property_", ?d_label))) AS ?property )
   BIND(URI(CONCAT("http://owlfragment/entity/", ?r_label)) AS ?rangeClass )       
