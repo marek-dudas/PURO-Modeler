@@ -1,0 +1,36 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX puro: <http://lod2-dev.vse.cz/ontology/puro#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+INSERT
+{ 
+  GRAPH <http://owlfragmentA> {
+    ?level2 puro:transformedTo ?typeClass .
+     ?typeClass a owl:Class .
+     ?lowerClass a owl:Class .
+     ?typeProperty a owl:ObjectProperty;
+    	rdfs:domain ?lowerClass;
+  		rdfs:range ?typeClass .
+  }
+}
+WHERE
+{ 
+  ?level2 a puro:BType;
+   rdfs:label ?level2_label .
+  ?level1 a puro:BType;
+   rdfs:label ?level1_label;
+   puro:instanceOf ?level2 .
+  ?objectOrType puro:instanceOf ?level1 .
+    
+    OPTIONAL {?level1 puro:mappedTo ?level1_mapping .}
+    OPTIONAL {?level2 puro:mappedTo ?level2_mapping .}
+    
+    BIND(COALESCE(?level2_mapping, URI(CONCAT("http://owlfragment/entity/", ?level2_label))) AS ?typeClass )
+    BIND(COALESCE(?level1_mapping, URI(CONCAT("http://owlfragment/entity/", ?level1_label))) AS ?lowerClass )  
+    BIND(URI(CONCAT("http://owlfragment/entity/is_", LCASE(SUBSTR(?level2_label,1,1)), SUBSTR(?level2_label,2))) AS ?typeProperty )  
+   
+   FILTER NOT EXISTS {
+      GRAPH ?any {?level2 puro:transformedTo [] .}     
+   }
+}
