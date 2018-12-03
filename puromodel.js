@@ -285,6 +285,7 @@ function PuroModel() {
 	this.oldId = null;
 	this.vocabs = [];
 	this.created = Date.now();
+	this.saved = true;
 }
 
 
@@ -461,8 +462,8 @@ PuroModel.prototype.rebuildFrom = function(srcModel) {
 	
 	this.name = srcModel.name;
 	//this.id = srcModel.id;
-	this.oldId = srcModel._id;
-	this.oldRev = srcModel._rev;
+	if (srcModel._id) this.oldId = srcModel._id;
+	if (srcModel._rev) this.oldRev = srcModel._rev;
 	if(!(typeof srcModel.vocabs === "undefined")) this.vocabs = srcModel.vocabs;	
 	this.updateBTypeLevels();
 	//this._rev = srcModel._rev;
@@ -545,6 +546,7 @@ PuroModel.prototype.linksLinkedToNode = function(node) {
 
 PuroModel.prototype.validate = function() {
 	// debug / turned off
+	this.saved = false;
 	return null;
 	for(var i=0; i<this.nodes.length; i++) this.nodes[i].errors.init();
 	for(var i=0; i<this.links.length; i++) {

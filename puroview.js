@@ -320,6 +320,10 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
     $('#btnMorph').hide();
 	$('#btnLoggedIn').click(function () {view.loggedInDlg.open();});
 	$('#btnLogin').click(function () {view.loginDlg.open();});
+    var mainMenu = new mdc.menu.MDCMenu(document.querySelector('#mainMenu'));
+    $('#btnMainMenu').click(function () {
+        mainMenu.open = true;
+    });
 
     if (!PuroAppSettings.modelingStyleBoxEnabled) {
         this.switchAdvanced = new mdc.switchControl.MDCSwitch(document.querySelector('#switchDivAdvanced'));
@@ -327,12 +331,27 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
         this.switchAdvanced.listen('change', function () {
             view.showAdvanced(view.switchAdvanced.checked);
         });
+        this.fileImportDlg = new mdc.dialog.MDCDialog(document.querySelector('#dlgImport'));
+        $('#btnExport').click(function () {
+            var blob = new Blob([JSON.stringify(view.model)], {type: "application/json;charset=utf-8"});
+            saveAs(blob, view.model.name);
+		});
+		$('#btnImport').click(function () {
+			view.fileImportDlg.open();
+		});
+        $('#fileImport').change(function () {
+            var files = this.files;
+            if (files.length > 0) {
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    puroControl.importModel(event.target.result);
+                    view.updateView();
+                };
+                reader.readAsText(files[0]);
+            }
+        });
     }
     else {
-        var mainMenu = new mdc.menu.MDCMenu(document.querySelector('#mainMenu'));
-        $('#btnMainMenu').click(function () {
-            mainMenu.open = true;
-        });
         $('#ofmDownloadLink').click(function () {
             window.open($(this).attr('data-link'), '_blank')
         });
@@ -502,6 +521,11 @@ PuroView.prototype.hideNodeControls = function () {
 };
 
 PuroView.prototype.updateView = function() {
+
+	if ($('#btnSave')) {
+        if (this.model.saved) $('#btnSave').hide();
+        else $('#btnSave').show();
+    }
 	   
     var puroControl = this.puroCtrl;
     var view = this;
@@ -574,6 +598,7 @@ PuroView.prototype.updateView = function() {
 	    function dragend(d, i) {
 	        d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
 	        view.tick();
+	        view.model.saved = false;
 	        if(view.layoutRunning) view.layout.resume();
 	        if(PuroAppSettings.vocabComparisonEnabled) view.drawVocabPaths();
 	    }

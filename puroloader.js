@@ -56,7 +56,7 @@ PuroLoader.prototype.resetAttemptCounter = function() {
 	this.saveAttempts = 0;
 };
 
-PuroLoader.prototype.saveModel = function(model) {
+PuroLoader.prototype.saveModel = function(model, callback) {
 	/*store = this.store;
 	model.modified = Date.now();
 	this.saveAttempts++;
@@ -85,7 +85,7 @@ PuroLoader.prototype.saveModel = function(model) {
 			}, function() {retry(model);});*/
 	this.model = model;
 	model.modified = Date.now();
-	var saveCallback = this.saveRevisionId.bind(this);
+	var saveCallback = callback || this.saveRevisionId.bind(this);
 	if(model.inStore) {
 		CouchProxy.saveModel(model.oldId, model, saveCallback);
 	}
@@ -122,7 +122,7 @@ PuroLoader.prototype.getNewId = function(){
 };*/
 
 PuroLoader.prototype.deserialize = function(obm) {
-	return dojox.json.ref.resolveJson(obm);
+	return JSON.parse(obm); //dojox.json.ref.resolveJson(obm);
 };
 
 PuroLoader.prototype.deleteModel = function(modelId,callback) {

@@ -36,8 +36,10 @@
 	    <script src="purocontroller.js"></script>
 	  	<script src="puroview.js"></script>
 	  	<script src="puroEditor.js"></script>
+
+		<script src="FileSaver.js"></script>
 	  	
-		 <script src='dojo/dojo.js' djConfig="isDebug: true, parseOnLoad: true"></script>
+		 <!--<script src='dojo/dojo.js' djConfig="isDebug: true, parseOnLoad: true"></script>-->
 		 
 		<!-- <script src='/puromodeler/ojox/data/XmlStore.js'></script> -->
 
@@ -74,7 +76,19 @@
 						<button id="btnSave" class="mdc-button mdc-button--flat mdc-theme--on-primary" data-mdc-auto-init="MDCRipple">Save model</button>
 						<button id="btnMorph" class="mdc-button mdc-button--flat mdc-theme--on-secondary" data-mdc-auto-init="MDCRipple">Build ontology</button>
 						<a href="#" id="btnLoggedIn" class="material-icons mdc-top-app-bar__action-item">person</a>
-						<a href="#" id="btnMenu" class="material-icons mdc-top-app-bar__action-item" aria-label="Menu" alt="Menu">more_vert</a>
+						<div class="mdc-menu-surface--anchor">
+							<a href="#" id="btnMainMenu" class="material-icons mdc-top-app-bar__action-item" aria-label="Menu" alt="Menu">more_vert</a>
+							<div class="mdc-menu mdc-menu-surface" id="mainMenu">
+								<ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
+									<li id="btnExport" class="mdc-list-item" role="menuitem">
+										<span class="mdc-list-item__text">Export model</span>
+									</li>
+									<li id="btnImport" class="mdc-list-item" role="menuitem">
+										<span>ImportModel</span>
+									</li>
+								</ul>
+							</div>
+						</div>
 					</section>
 				</div>
 			</header>
@@ -141,6 +155,29 @@
    --></h2>
 				<div class="mdc-dialog__content">
 					You are logged in as <span id="spanUser"></span>.
+				</div>
+				<footer class="mdc-dialog__actions">
+					<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="yes">Close</button>
+				</footer>
+			</div>
+		</div>
+		<div class="mdc-dialog__scrim"></div>
+	</div>
+
+	<div class="mdc-dialog"
+		 id="dlgImport"
+		 role="alertdialog"
+		 aria-modal="true"
+		 aria-labelledby="my-dialog-title"
+		 aria-describedby="my-dialog-content">
+		<div class="mdc-dialog__container">
+			<div class="mdc-dialog__surface">
+				<!-- Title cannot contain leading whitespace due to mdc-typography-baseline-top() -->
+				<h2 class="mdc-dialog__title"><!--
+     -->Choose file for import<!--
+   --></h2>
+				<div class="mdc-dialog__content">
+					<input type="file" class="form-control" id="fileImport">
 				</div>
 				<footer class="mdc-dialog__actions">
 					<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="yes">Close</button>

@@ -38,6 +38,7 @@ PuroController.prototype.linkTypeSelected = function (index) {
     this.creationLink.hide();
     if(link) {
         this.model.addLink(link);
+        this.model.validate();
         this.view.updateView();
         this.saveModel();
     }
@@ -327,9 +328,18 @@ PuroController.prototype.loadModelFromJStore = function(obm) {
 	 this.view.setData(this.model);
 	 this.view.updateView();
 	 this.showAllVocabs();
+
+	 if (this.loadModelAction) {
+	 	this.loadModelAction();
+	 	this.loadModelAction = null;
+     }
 	 
 	 //DEBUG
 	 //this.getMappings();
+};
+
+PuroController.prototype.importModel = function (jsonString) {
+	this.model.rebuildFrom(JSON.parse(jsonString));
 };
 
 PuroController.prototype.promptForModelName = function() {
@@ -348,7 +358,7 @@ PuroController.prototype.newModel = function() {
 			      this.saveModel();}
 };
 
-PuroController.prototype.saveModel = function() {
+PuroController.prototype.saveModel = function(callback) {
 	//var store = null;
 	/*require(["dojo/ready", "dojox/data/CouchDBRestStore"], function(CouchDb){
 	  	 store = new CouchDb({target: "http://admin:c0d1988@192.168.1.2:5984/puromodels"});
@@ -366,7 +376,12 @@ PuroController.prototype.saveModel = function() {
   	else if(this.model.inStore == false) this.store.setAfterSaveAction(this.updateOBMs.bind(this));
   	else this.store.setAfterSaveAction(null);
   	this.model.author = this.getCurrentUser();
- 	this.store.saveModel(this.model);
+  	var afterSave = function () {
+  		this.model.saved = true;
+  		this.view.updateView();
+  		if (callback) callback();
+	};
+ 	this.store.saveModel(this.model, afterSave.bind(this));
  	//newItem(this.model,null);
  	//this.store.save(null);
  	
@@ -430,8 +445,8 @@ PuroController.prototype.vocabChange = function(vocab, checked) {
 
 PuroController.prototype.updateOFM = function() {
 	function processTransformResponse(data) {
-		dojo.require("dojox.json.ref");
-		ofmUrls = dojox.json.ref.fromJson(data);
+		//dojo.require("dojox.json.ref");
+		ofmUrls = JSON.parse(data); //dojox.json.ref.fromJson(data);
 		if(ofmUrls != null && ofmUrls.length>0) {
 			d3.select("#vowlFrame").property("src", ofmUrls[0].vowlUrl);
 			d3.select("#ofmDownloadLink").attr("data-link", ofmUrls[0].downloadUrl);
@@ -453,9 +468,9 @@ PuroController.prototype.hideMappingInfo = function() {
 }
 
 PuroController.prototype.extractMappings = function(data) {
-	dojo.require("dojox.json.ref");
+	// dojo.require("dojox.json.ref");
 	var mappings = null;
-	if(typeof data == "string" )  mappings = dojox.json.ref.fromJson(data);
+	if(typeof data == "string" )  mappings = JSON.parse(data); // dojox.json.ref.fromJson(data);
 	else if(typeof data == "object") mappings = data;
 	if(mappings != null) {
 		this.mappings = mappings.mappings;
@@ -505,8 +520,8 @@ PuroController.prototype.getMappings = function() {
 
 PuroController.prototype.getTransformation = function() {
 	function processTransformResponse(data) {
-		dojo.require("dojox.json.ref");
-		ofmUrls = dojox.json.ref.fromJson(data);
+		// dojo.require("dojox.json.ref");
+		ofmUrls = JSON.parse(data); // dojox.json.ref.fromJson(data);
 		if(ofmUrls != null && ofmUrls.length>0) {
 			d3.select("#vowlFrame").property("src", ofmUrls[0].vowlUrl);
 			d3.select("#ofmDownloadLink").property("href", ofmUrls[0].downloadUrl);
@@ -516,10 +531,14 @@ PuroController.prototype.getTransformation = function() {
 	PuroRdfSerializer.getOFMVisualizationUrl(this.model, processTransformResponse);
 };
 
-PuroController.prototype.loadMorph = function() {
+PuroController.prototype.openMorph = function() {
 	var user = this.getCurrentUser();
 	window.location.href = "OBOWLMorph?user="+user+"&pass="+this.pass+"&model="+this.currentModelId;
 };
+
+PuroController.prototype.loadMorph = function() {
+	this.saveModel(this.openMorph.bind(this));
+}
 
 PuroController.prototype.loadEditor = function() {
 	var user = this.getCurrentUser();

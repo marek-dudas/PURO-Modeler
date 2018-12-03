@@ -33,7 +33,7 @@
 	  	<script src="../puroview.js"></script>
 	  	<script src="../puroEditor.js"></script>
 	  	
-		 <script src='../dojo/dojo.js' djConfig="isDebug: true, parseOnLoad: true"></script>
+		 <!--<script src='../dojo/dojo.js' djConfig="isDebug: true, parseOnLoad: true"></script>-->
 		 
 		<!-- <script src='dojox/data/XmlStore.js'></script> -->
 
@@ -162,6 +162,7 @@
     		);
 
     	PuroEditor.loginUserFromUrl();
+    	PuroEditor.control.loadModelAction = PuroEditor.control.updateOFM.bind(PuroEditor.control);
     	PuroEditor.loadModelFromUrl();
     </script>
 </html>
