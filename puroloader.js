@@ -147,13 +147,16 @@ PuroLoader.prototype.getOBMs = function(puroview, user) {
 	var puroloader = this;
 	CouchProxy.getAllModels(function(result){
 		//deserializedResult = JSON.parse(result);
-		obms = [];
+		var obms = [];
+		var examples = [];
 		for(var i=0; i<result.rows.length; i++){
 			//var obm = puroloader.deserialize(result.rows[i].doc);
 			var obm = result.rows[i].doc;
-			if(obm.author == user || user == "admin") obms.push(obm);
+			if(obm.author == user && !obm.name.includes(PuroAppSettings.exampleMark)) obms.push(obm);
+			else if(obm.name.includes(PuroAppSettings.exampleMark)) examples.push(obm);
 		}
-		puroview.fillOBMList(obms);
+		puroview.fillOBMList(obms, PuroAppSettings.userModelsListElement);
+        puroview.fillOBMList(examples, PuroAppSettings.exampleListElement);
 	});	
 };
 

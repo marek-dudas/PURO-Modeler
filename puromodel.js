@@ -288,6 +288,9 @@ function PuroModel() {
 	this.saved = true;
 }
 
+PuroModel.prototype.isExample = function() {
+	return this.name.includes(PuroAppSettings.exampleMark);
+};
 
 PuroModel.prototype.getBoundingBox = function() {
     let b = {top: Number.MAX_VALUE, left: Number.MAX_VALUE, bottom: Number.MIN_VALUE, right: Number.MIN_VALUE};

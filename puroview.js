@@ -84,6 +84,8 @@ function PuroView(width, height, viewingElement){
 	
 	this.mappingChoices = null;
 	this.mouseInCanvas = false;
+
+    $('#spanUser').text('anonymous');
 };
 
 function CreationLink (inSvg) {
@@ -317,6 +319,7 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 
 	$('#btnLoggedIn').hide();
     $('#btnSave').hide();
+    $('#btnSaveAs').hide();
     $('#btnMorph').hide();
 	$('#btnLoggedIn').click(function () {view.loggedInDlg.open();});
 	$('#btnLogin').click(function () {view.loginDlg.open();});
@@ -390,13 +393,12 @@ PuroView.prototype.decorateModelingControls = function(puroControl) {
 
 PuroView.prototype.updateOBMList = function() {
 	if(!PuroAppSettings.modelingStyleBoxEnabled) {
-        this.obmListElement = 'divModelsList';
         this.puroCtrl.getOBMs();
     }
 };
 	
-PuroView.prototype.fillOBMList = function(obms) {
-	var table = d3.select("#"+this.obmListElement);
+PuroView.prototype.fillOBMList = function(obms, listElementId) {
+	var table = d3.select("#"+listElementId);
 	table.selectAll("li").remove();
 	var ctrl = this.puroCtrl;
     for(var i=0; i<obms.length; i++) {
@@ -407,19 +409,21 @@ PuroView.prototype.fillOBMList = function(obms) {
             .on("click", function(){
                 ctrl.loadModel(this.id);})
             .text(obms[i].name);
-        tr.append("a")
-            .classed("mdc-list-item__meta", true)
-            .classed("material-icons", true)
-            .text('delete')
-            .attr("modelid",obms[i]._id)
-            .attr("modelname", obms[i].name)
-            .on("click", function() {
-                d3.event.stopPropagation();
-                var confirmation = true;
-                if(this.attributes.modelname) confirmation = confirm("Do you really want to delete model "+this.attributes.modelname.value+"?");
-                var idToDelete = this.attributes.modelid.value;
-                if(confirmation) ctrl.deleteModel(idToDelete);
-            });
+        if (listElementId === PuroAppSettings.userModelsListElement || this.puroCtrl.getCurrentUser() === PuroAppSettings.powerUser) {
+            tr.append("a")
+                .classed("mdc-list-item__meta", true)
+                .classed("material-icons", true)
+                .text('delete')
+                .attr("modelid", obms[i]._id)
+                .attr("modelname", obms[i].name)
+                .on("click", function () {
+                    d3.event.stopPropagation();
+                    var confirmation = true;
+                    if (this.attributes.modelname) confirmation = confirm("Do you really want to delete model " + this.attributes.modelname.value + "?");
+                    var idToDelete = this.attributes.modelid.value;
+                    if (confirmation) ctrl.deleteModel(idToDelete);
+                });
+        }
     }
     this.updateSize();
 };
@@ -524,8 +528,12 @@ PuroView.prototype.updateView = function() {
 
 	if ($('#btnSave')) {
         if (this.model.saved) $('#btnSave').hide();
-        else $('#btnSave').show();
+        else if (this.puroCtrl.savingEnabled()) $('#btnSave').show();
     }
+
+    if ($('#btnMorph')) {
+		if (this.model.isExample()) $('#btnMorph').show();
+	}
 	   
     var puroControl = this.puroCtrl;
     var view = this;

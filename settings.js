@@ -34,6 +34,10 @@ var PuroAppSettings = {
 		vocabVisualizationEnabled: true,
 		debug: true,
 		loadDebugJson: false,
+	    powerUser: 'marek.kasle.na@gmail.com',
+		exampleMark: '(-example-)',
+		userModelsListElement: 'divModelsList',
+		exampleListElement: 'divExamplesList',
 		setEditorFunctionality: function() {
 			this.vocabComparisonEnabled = true;
 			this.obmToolboxEnabled = true;
