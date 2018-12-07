@@ -242,12 +242,16 @@ PuroView.prototype.updateSize = function() {
 	this.height = currentSize.height;
 
 	if(this.model && this.model.nodes && this.model.nodes.length > 0) {
-        const b = this.model.getBoundingBox();
-
-        this.zoomListener.translate([this.width / 2 - b.center.x, $(window).height() / 3 - b.center.y]);
-        this.zoomListener.event(this.rootSvg);
+		this.centerModel();
     }
 };
+
+PuroView.prototype.centerModel = function() {
+    const b = this.model.getBoundingBox();
+
+    this.zoomListener.translate([this.width / 2 - b.center.x, $(window).height() / 3 - b.center.y]);
+    this.zoomListener.event(this.rootSvg);
+}
 
 PuroView.prototype.startLayout = function() {
 	var thisView = this;

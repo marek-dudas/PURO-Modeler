@@ -56,7 +56,7 @@ PuroLoader.prototype.resetAttemptCounter = function() {
 	this.saveAttempts = 0;
 };
 
-PuroLoader.prototype.saveModel = function(model, callback) {
+PuroLoader.prototype.saveModel = function(model) {
 	/*store = this.store;
 	model.modified = Date.now();
 	this.saveAttempts++;
@@ -85,11 +85,11 @@ PuroLoader.prototype.saveModel = function(model, callback) {
 			}, function() {retry(model);});*/
 	this.model = model;
 	model.modified = Date.now();
-	var saveCallback = callback || this.saveRevisionId.bind(this);
-	if(model.inStore) {
+	var saveCallback = this.saveRevisionId.bind(this);
+	if(model.name && model.name != '' && model.inStore) {
 		CouchProxy.saveModel(model.oldId, model, saveCallback);
 	}
-	else CouchProxy.addModel(model, saveCallback);
+	else if (model.name && model.name != '') CouchProxy.addModel(model, saveCallback);
 };
 
 PuroLoader.prototype.saveRevisionId = function(result){
@@ -152,8 +152,8 @@ PuroLoader.prototype.getOBMs = function(puroview, user) {
 		for(var i=0; i<result.rows.length; i++){
 			//var obm = puroloader.deserialize(result.rows[i].doc);
 			var obm = result.rows[i].doc;
-			if(obm.author == user && !obm.name.includes(PuroAppSettings.exampleMark)) obms.push(obm);
-			else if(obm.name.includes(PuroAppSettings.exampleMark)) examples.push(obm);
+			if(obm.author == user && obm.name && !obm.name.includes(PuroAppSettings.exampleMark)) obms.push(obm);
+			else if(obm.name && obm.name.includes(PuroAppSettings.exampleMark)) examples.push(obm);
 		}
 		puroview.fillOBMList(obms, PuroAppSettings.userModelsListElement);
         puroview.fillOBMList(examples, PuroAppSettings.exampleListElement);

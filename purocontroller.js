@@ -327,6 +327,7 @@ PuroController.prototype.loadModelFromJStore = function(obm) {
 	this.model = obm;
 	 this.view.setData(this.model);
 	 this.view.updateView();
+	 this.view.centerModel();
 	 this.showAllVocabs();
 
 	 if (this.loadModelAction) {
@@ -362,6 +363,15 @@ PuroController.prototype.savingEnabled = function () {
     return this.getCurrentUser() && (this.getCurrentUser() == PuroAppSettings.powerUser || !this.model.name.includes(PuroAppSettings.exampleMark));
 };
 
+PuroController.prototype.afterSaveUpdate = function () {
+	if (this.needObmReload) this.updateOBMs();
+    if (this.additionalSaveCallback) this.additionalSaveCallback();
+    this.needObmReload = this.additionalSaveCallback = null;
+	this.model.saved = true;
+    this.view.updateView();
+
+};
+
 PuroController.prototype.saveModel = function(callback) {
 	//var store = null;
 	/*require(["dojo/ready", "dojox/data/CouchDBRestStore"], function(CouchDb){
@@ -374,20 +384,20 @@ PuroController.prototype.saveModel = function(callback) {
   		
   		//store.put(this.model,null);
 	if (!this.savingEnabled()) return null;
+	this.store.setAfterSaveAction(this.afterSaveUpdate.bind(this));
 
   	if(this.model.name == "") {
   		this.model.name = this.promptForModelName();
-  		this.store.setAfterSaveAction(this.updateOBMs.bind(this));
+  		// this.store.setAfterSaveAction(this.updateOBMs.bind(this));
+		this.needObmReload = true;
   	}
-  	else if(this.model.inStore == false) this.store.setAfterSaveAction(this.updateOBMs.bind(this));
-  	else this.store.setAfterSaveAction(null);
+  	else if(this.model.inStore == false) this.needObmReload = true;
+  	else this.needObmReload = false;
+    if (callback) this.additionalSaveCallback = callback;
+    else this.additionalSaveCallback = null;
   	this.model.author = this.getCurrentUser();
-  	var afterSave = function () {
-  		this.model.saved = true;
-  		this.view.updateView();
-  		if (callback) callback();
-	};
- 	this.store.saveModel(this.model, afterSave.bind(this));
+
+ 	this.store.saveModel(this.model);
  	//newItem(this.model,null);
  	//this.store.save(null);
  	
@@ -401,7 +411,8 @@ PuroController.prototype.saveModelAs = function() {
 	this.model.oldId = null;
 	this.model.inStore = false;
   	this.model.author = this.getCurrentUser();
-	this.store.setAfterSaveAction(this.updateOBMs.bind(this));
+	this.needObmReload = true;
+    this.store.setAfterSaveAction(this.afterSaveUpdate.bind(this));
 	this.store.saveModel(this.model);
 };
 
@@ -450,6 +461,8 @@ PuroController.prototype.vocabChange = function(vocab, checked) {
 };
 
 PuroController.prototype.updateOFM = function() {
+    this.showSpinner();
+    var ctrl = this;
 	function processTransformResponse(data) {
 		//dojo.require("dojox.json.ref");
 		ofmUrls = JSON.parse(data); //dojox.json.ref.fromJson(data);
@@ -458,6 +471,7 @@ PuroController.prototype.updateOFM = function() {
 			d3.select("#ofmDownloadLink").attr("data-link", ofmUrls[0].downloadUrl);
 			d3.select("#ofmVisualLink").attr("data-link", ofmUrls[0].vowlUrl);
 		}
+		ctrl.hideSpinner();
 	};
 	PuroRdfSerializer.getOFMVisualizationUrl(this.model, processTransformResponse);
 };
@@ -576,7 +590,7 @@ PuroController.prototype.updateOBMs = function() {
         this.getOBMs();
         this.view.updateView();
     }
-}
+};
 
 PuroController.prototype.getOBMs = function() {
 	//return this.store.getOBMs(this.view);
