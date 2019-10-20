@@ -7,8 +7,10 @@ INSERT
 { 
   GRAPH <http://owlfragmentA> {
     ?level2 puro:transformedTo ?typeClass .
+    ?level1 puro:transformedTo ?lowerClass .
      ?typeClass a owl:Class .
      ?lowerClass a owl:Class .
+     ?typeInstance a ?typeClass .
      ?typeProperty a owl:ObjectProperty;
     	rdfs:domain ?lowerClass;
   		rdfs:range ?typeClass .
@@ -16,18 +18,23 @@ INSERT
 }
 WHERE
 { 
+  VALUES ?typeSuffix { "Type" "Category" "_type" "_Type" "_category" "_Category"}
   ?level2 a puro:BType;
    rdfs:label ?level2_label .
   ?level1 a puro:BType;
    rdfs:label ?level1_label;
    puro:instanceOf ?level2 .
   ?objectOrType puro:instanceOf ?level1 .
+  
+  FILTER (CONTAINS(?level2_label, ?typeSuffix))
+  
+  BIND (URI(CONCAT("http://owlfragment/entity/",STRBEFORE(?level2_label, ?typeSuffix))) AS ?lowerClass)
     
     OPTIONAL {?level1 puro:mappedTo ?level1_mapping .}
     OPTIONAL {?level2 puro:mappedTo ?level2_mapping .}
     
     BIND(COALESCE(?level2_mapping, URI(CONCAT("http://owlfragment/entity/", ?level2_label))) AS ?typeClass )
-    BIND(COALESCE(?level1_mapping, URI(CONCAT("http://owlfragment/entity/", ?level1_label))) AS ?lowerClass )  
+    BIND(COALESCE(?level1_mapping, URI(CONCAT("http://owlfragment/entity/", ?level1_label))) AS ?typeInstance )  
     BIND(URI(CONCAT("http://owlfragment/entity/is_", LCASE(SUBSTR(?level2_label,1,1)), SUBSTR(?level2_label,2))) AS ?typeProperty )  
    
    FILTER NOT EXISTS {

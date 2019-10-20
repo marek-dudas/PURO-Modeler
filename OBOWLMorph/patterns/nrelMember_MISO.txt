@@ -45,13 +45,14 @@ WHERE
     || EXISTS {?b puro:modelingStyle puro:reify} ) 
     
     
+   OPTIONAL {GRAPH <http://owlfragmentA> {?r puro:transformedTo ?transformedTypeClass.}}
    OPTIONAL {?d puro:mappedTo ?d_mapping .}
    OPTIONAL {?r puro:mappedTo ?r_mapping .}
    
   BIND(COALESCE(?d_mapping, URI(CONCAT("http://owlfragment/entity/", UCASE(SUBSTR(?d_label,1,1)), SUBSTR(?d_label,2), "_Relation" ))) AS ?domainClass )
   BIND(IF(?link_label != "", URI(CONCAT("http://owlfragment/entity/", ?link_label)), 
     URI(CONCAT("http://owlfragment/entity/property_", ?d_label))) AS ?property )
-  BIND(COALESCE(?r_mapping, URI(CONCAT("http://owlfragment/entity/", ?r_label))) AS ?rangeClass )       
+  BIND(COALESCE(?transformedTypeClass, ?r_mapping, URI(CONCAT("http://owlfragment/entity/", ?r_label))) AS ?rangeClass )       
   BIND(URI(CONCAT("http://owlfragment/entity/", LCASE(SUBSTR(?r_label,1,1)), SUBSTR(?r_label,2) )) AS ?rangeProperty ) 
   BIND(URI(CONCAT("http://owlfragment/entity/", LCASE(SUBSTR(?d_label,1,1)), SUBSTR(?d_label,2) )) AS ?domainProperty ) 
   BIND(URI(CONCAT("http://owlfragment/entity/", UCASE(SUBSTR(?link_label,1,1)), SUBSTR(?link_label,2) )) AS ?propertyClass ) 

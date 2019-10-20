@@ -14,8 +14,8 @@ INSERT
     ?itemClass a owl:Class .
      ?p_typeClass a owl:Class .
      ?manifestProp a owl:ObjectProperty;
-      rdfs:range ?itemClass;
-      rdfs:domain ?p_typeClass;
+      rdfs:domain ?itemClass;
+      rdfs:range ?p_typeClass;
   }     
 }
 WHERE
@@ -29,10 +29,13 @@ WHERE
     puro:instanceOf ?prod ;
     puro:instanceOf ?item .
   ?item a puro:BType; 
-   rdfs:label ?item_label .     
+   rdfs:label ?item_label .
+  ?miso a puro:Some_objects ;
+        puro:instanceOf ?prod .
+  OPTIONAL {GRAPH <http://owlfragmentA> {?p_type puro:transformedTo ?transformedProductClass.}}
   BIND(URI(CONCAT("http://owlfragment/entity/", ?item_label)) AS ?itemClass )
-  BIND(URI(CONCAT("http://owlfragment/entity/", ?ptype_label)) AS ?p_typeClass )
-  BIND(URI("http://owlfragment/entity/hasManifestation") AS ?manifestProp )
+  BIND(COALESCE(?transformedProductClass, URI(CONCAT("http://owlfragment/entity/", ?ptype_label))) AS ?p_typeClass )
+  BIND(URI("http://owlfragment/entity/exemplar_of") AS ?manifestProp )
    FILTER NOT EXISTS {
       ?item puro:transformedTo [] . 
    }

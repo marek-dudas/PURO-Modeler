@@ -59,6 +59,7 @@
     
     //run the transformation
     $transformation_data = "puro-model=$webUrl$purom_filename&"
+    		."transformation-pattern=$patternsUrl/multiLevelClass_to_typeProp.txt&"
     		."transformation-pattern=$patternsUrl/2rel_to_classMembership.txt&"
     		."transformation-pattern=$patternsUrl/2rel_to_dataProp.txt&"
     		."transformation-pattern=$patternsUrl/2rel_to_objProp.txt&"
@@ -74,7 +75,6 @@
     		."transformation-pattern=$patternsUrl/cancel_multidomain.txt&"
     		."transformation-pattern=$patternsUrl/cancel_multirange.txt&"
     		."transformation-pattern=$patternsUrl/nrelMember_MISO.txt&"
-    		."transformation-pattern=$patternsUrl/multiLevelClass_to_typeProp.txt&"
     		."transformation-pattern=$patternsUrl/fragment_annot.txt";
     
     $purom_file = fopen("transform-debug.txt", "w");
