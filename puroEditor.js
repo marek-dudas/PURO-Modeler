@@ -11,7 +11,7 @@ var PuroEditor = {
 	//this.view.startLayout();
 	this.view.updateView();
       this.view.updateOBMList();
-	
+
 	gup = function( name )
 	{
 	  name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
@@ -24,17 +24,26 @@ var PuroEditor = {
 	    return results[1];
 	};
   },
-  
+
 	loadModelFromUrl: function() {
 		var modelId = gup('model');
 		if(modelId!=null && modelId!='null') this.control.loadModel(modelId);
 	},
-	
+
+	hideEditorIfReadOnly: function() {
+  		if(gup('readOnly')) {
+  			$('aside').hide();
+  			$('header').hide();
+  			$('#tools').hide();
+  			$('.mdc-top-app-bar--fixed-adjust').removeClass('mdc-top-app-bar--fixed-adjust');
+		}
+	},
+
 	setUserAndLoad: function(user) {
 			  this.control.setUser(user);
 			  this.view.updateOBMList(obmListTableElement);
 	},
-  
+
   loginUserFromUrl: function() {
 	  var user = gup('user');
 	  var pass = gup('pass');
@@ -46,7 +55,7 @@ var PuroEditor = {
 		  $.get( sessionUrl, this.setUserAndLoad.bind(this), "json" );
 	  }
   },
-	
+
 	logout: function() {
 		$.get(sessionUrl+"?logout=1", function() {window.location.href = serverRoot;});
 	}
