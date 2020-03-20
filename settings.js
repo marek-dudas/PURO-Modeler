@@ -14,6 +14,8 @@ var couchProxyUrl = serverRoot+"server/couchProxy.php";
 
 var sessionUrl = serverRoot+"server/session.php";
 
+var saveExportUrl = serverRoot+"server/saveRdfExport.php";
+
 var vowlUrl = "http://rknown.vserver.cz:8080/webvowl_1.0.4/#iri=";
 
 var vocabsDiv = "vocabs";
@@ -55,9 +57,9 @@ var PuroAppSettings = {
 };
 
 if(PuroAppSettings.debug) {
-	
+
 	serverRoot = "http://localhost/purom";
-	
+
 	couchdbUrl = "http://localhost/couchdb/puromodels2/"; //"http://admin:c0d1988@protegeserver.cz/couchdb/puromodels"//"http://localhost/couchdb/puromodels2/";//"http://admin:c0d1988@lod2-dev.vse.cz/couchdb/puromodels2/"; //"http://localhost/couchdb/puromodels/""http://user:pasword@protegeserver.cz/couchdb";
 
 	transformServerUrl = serverRoot+"/server/purom-transform.php";  //"http://localhost/PUROM-server/purom-transform.php""http://lod2-dev.vse.cz/puromodeler/server/purom-transform.php";
@@ -69,8 +71,10 @@ if(PuroAppSettings.debug) {
 	couchLoginUrl =  serverRoot+"/puromodeler/server/login.php";
 
 	vowlUrl = "http://rknown.vserver.cz:8080/webvowl_1.0.4/#iri=";
-	
+
 	couchProxyUrl =  serverRoot+"/server/couchProxy.php";
-	
+
 	sessionUrl =  serverRoot+"/server/session.php";
+
+	saveExportUrl = serverRoot+"/server/saveRdfExport.php";
 }

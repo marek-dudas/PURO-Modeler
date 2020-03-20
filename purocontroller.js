@@ -45,10 +45,10 @@ PuroController.prototype.linkTypeSelected = function (index) {
 }
 
 PuroController.prototype.startNodeDrag = function(node) {
-	
+
 	this.view.setDraggedNode(node);
 
-    
+
 }
 
 PuroController.prototype.setTool = function(tool){
@@ -95,7 +95,7 @@ PuroController.prototype.setTool = function(tool){
 		case this.TOOL.del:
 			d3.select("#tooltip").text("Click on a node or a link to delete it.");
 			break;
-		
+
 	}
 	this.view.updateView();
 };
@@ -174,7 +174,7 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 				}
 				if(this.activeTool == this.TOOL.instanceOfLink) {
 					var link = new InstanceOfLink("new link",this.linkStart, node);
-					if(link.start!=null) 
+					if(link.start!=null)
 						{
 							this.model.addLink(link);
 							this.saveModel();
@@ -185,7 +185,7 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 				}
 				if(this.activeTool == this.TOOL.subtypeOfLink) {
 					var link = new SubTypeOfLink("new link",this.linkStart, node);
-					if(link.start!=null) 
+					if(link.start!=null)
 						{
 							this.model.addLink(link);
 							this.saveModel();
@@ -201,7 +201,7 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 			}
 			else {
 				d3.select("#tooltip").text("Now click on the node that is the target of the relationship link.");
-				this.linkStart = node; 
+				this.linkStart = node;
 				this.selectNode(node);
 				this.view.updateView();
 			}
@@ -268,7 +268,7 @@ PuroController.prototype.mappingChanged = function(mapping, checked) {
 		//d3.select("#vowlFrame").property("src", vowlUrl+mapping.namespace);
 		this.model.addMappingNode(this.selectedNode, mapping);
 		this.view.updateView();
-	}	
+	}
 };
 
 PuroController.prototype.temporalityChanged = function(checked) {
@@ -334,7 +334,7 @@ PuroController.prototype.loadModelFromJStore = function(obm) {
 	 	this.loadModelAction();
 	 	this.loadModelAction = null;
      }
-	 
+
 	 //DEBUG
 	 //this.getMappings();
 };
@@ -369,19 +369,19 @@ PuroController.prototype.afterSaveUpdate = function () {
     this.needObmReload = this.additionalSaveCallback = null;
 	this.model.saved = true;
     this.view.updateView();
-
+	PuroRdfSerializer.uploadRdfExport(this.model);
 };
 
 PuroController.prototype.saveModel = function(callback) {
 	//var store = null;
 	/*require(["dojo/ready", "dojox/data/CouchDBRestStore"], function(CouchDb){
 	  	 store = new CouchDb({target: "http://admin:c0d1988@192.168.1.2:5984/puromodels"});
-			   
+
 	  });*/
-	  
+
 	  //dojo.require("dojox.data.CouchDBRestStore");
 	  //store = new dojox.data.CouchDBRestStore({target: couchdbUrl}); //"http://admin:c0d1988@protegeserver.cz/couchdb"});
-  		
+
   		//store.put(this.model,null);
 	if (!this.savingEnabled()) return null;
 	this.store.setAfterSaveAction(this.afterSaveUpdate.bind(this));
@@ -400,10 +400,10 @@ PuroController.prototype.saveModel = function(callback) {
  	this.store.saveModel(this.model);
  	//newItem(this.model,null);
  	//this.store.save(null);
- 	
- 	
+
+
  	//myStores = dojox.data.CouchDBRestStore.getStores("http://admin:c0d1988@192.168.1.2:5984/_utils/");
-  
+
 };
 
 PuroController.prototype.saveModelAs = function() {
@@ -484,7 +484,7 @@ PuroController.prototype.showMappingInfo = function(mapping) {
 }
 
 PuroController.prototype.hideMappingInfo = function() {
-	d3.select("#mappingInfoWindow").style("visibility", "hidden");	
+	d3.select("#mappingInfoWindow").style("visibility", "hidden");
 }
 
 PuroController.prototype.extractMappings = function(data) {
@@ -509,7 +509,7 @@ PuroController.prototype.storeMappings = function() {
 			if(this.model.nodes[i].getURI() == this.mappings[j].from) {
 				var mapping = Object.create(Mapping);
 				mapping.init(this.mappings[j]);
-				this.model.addMapping(this.model.nodes[i], mapping);			
+				this.model.addMapping(this.model.nodes[i], mapping);
 			}
 		}
 	}
@@ -563,7 +563,7 @@ PuroController.prototype.loadMorph = function() {
 
 PuroController.prototype.loadEditor = function() {
 	var user = this.getCurrentUser();
-	window.location.href = "../?user="+user+"&pass="+(this.pass)+"&model="+this.currentModelId;	
+	window.location.href = "../?user="+user+"&pass="+(this.pass)+"&model="+this.currentModelId;
 };
 
 PuroController.prototype.setUser = function(user, pass) {
@@ -615,7 +615,7 @@ PuroController.prototype.getOBMs = function() {
 };
 
 PuroController.prototype.createVocabPaths = function(vocab) {
-	
+
 	var rStep = 3;
 	var radius = vocabHighlightRadius + this.model.vocabs.indexOf(vocab)*rStep;
 	var coef = 5;
@@ -623,28 +623,28 @@ PuroController.prototype.createVocabPaths = function(vocab) {
     const modelBox = this.model.getBoundingBox();
     const offsetX = modelBox.left - radius*2*coef;
     const offsetY = modelBox.top - radius*2*coef;
-	
+
 	var toMatrix = function(point) {return new Point(Math.round((point.x-offsetX)/coef), Math.round((point.y-offsetY)/coef));};
 	var ptFromMatrix = function(point) {return new Point(point.x*coef+offsetX, point.y*coef+offsetY);};
     var mWidth = (modelBox.right - modelBox.left)/coef + radius*5; // toMatrix(this.view.width)+radius*2;
     var mHeight = (modelBox.bottom - modelBox.top)/coef + radius*5; //  toMatrix(this.view.height)+radius*2;
-	
+
 	var ptToMatrix = toMatrix;
-	
-	
+
+
 	//var matrix = [];
-	
+
 	var M = {};
 	M.matrix = [];
 	M.debugPts = [];
-	
+
 	for(var i=0; i<mWidth+1; i++) {
 		M.matrix[i] = [];
 		for(var j=0; j<mHeight+1; j++) {
 			M.matrix[i][j]=0;
 		}
 	}
-	
+
 	M.get = function(_x,_y){
 		var x=Math.round(_x);
 		var y=Math.round(_y);
@@ -653,7 +653,7 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 		}
 		return -1;
 	};
-	
+
 	M.set = function(_x,_y,val){
 		var x=Math.round(_x);
 		var y=Math.round(_y);
@@ -665,45 +665,45 @@ PuroController.prototype.createVocabPaths = function(vocab) {
                 }
 			}
 			else(alert('undefined M.matrix[x] ...x='+x));
-		}		
+		}
 	};
-	
-	
-	
+
+
+
 	fillCircle = function(realPoint) {
 		var center = ptToMatrix(realPoint);
 		var p = new Point(0,0);
 		for(p.x=center.x-radius; p.x<=center.x+radius; p.x++){
 			for(p.y=center.y; pointDistance(p,center)<radius; p.y++){
 				M.set(p.x,p.y,1);//matrix[p.x][p.y]=1;
-			}			
+			}
 			for(p.y=center.y; pointDistance(p,center)<radius; p.y--){
 				M.set(p.x,p.y,1);//matrix[p.x][p.y]=1;
 			}
 		}
 	};
-	
+
 	normalize = function(pt) {
 		var length = Math.sqrt( Math.pow(pt.x,2)+ Math.pow(pt.y,2) );
 		pt.x = pt.x / length;
 		pt.y = pt.y / length;
 		return pt;
 	};
-	
+
 	normal = function(point) {
 		var pt = new Point(-point.y, point.x);
 		return normalize(pt);
 	};
-	
-	
+
+
 	fillPath = function(realStart, realEnd) {
 		var start = ptToMatrix(realStart);
 		var end = ptToMatrix(realEnd);
 		var lineV = new Point(end.x-start.x, end.y - start.y);
-		var lineN = normal(lineV);		
+		var lineN = normal(lineV);
 		normalize(lineV);
 		var length = pointDistance(start, end);
-		var p = new Point(start.x, start.y); 
+		var p = new Point(start.x, start.y);
 		while(pointDistance(p, start)<=length){
 			var pL = new Point(p.x, p.y);
 			while(pointDistance(pL,p)<=radius){
@@ -714,29 +714,29 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 			while(pointDistance(pR,p)<=radius){
 				M.set(pR.x,pR.y,1); //matrix[pR.x][pR.y]=1;
 				pR.x-=lineN.x; pR.y-=lineN.y;
-			}			
+			}
 			p.x+=lineV.x; p.y+=lineV.y;
 		}
-	};	
-	
+	};
+
 	for(i=0; i<this.model.nodes.length; i++){
 		if(this.model.nodes[i].hasVocab(vocab)) fillCircle(new Point(this.model.nodes[i].x,this.model.nodes[i].y));
 	}
-	
+
 	for(i=0; i<this.model.links.length; i++){
-		if(this.model.links[i].start.hasVocab(vocab) && this.model.links[i].end.hasVocab(vocab)) 
+		if(this.model.links[i].start.hasVocab(vocab) && this.model.links[i].end.hasVocab(vocab))
 		fillPath(new Point(this.model.links[i].start.x,this.model.links[i].start.y),
 				new Point(this.model.links[i].end.x,this.model.links[i].end.y));
 	}
-	
+
 	fillFromPoint = function(_x,_y){
 		var ptStack = [];
 		ptStack.push(new Point(_x,_y));
 		while(ptStack.length>0) {
 			var pt = ptStack.pop();
 			var x = pt.x; var y = pt.y;
-			if(M.get(x,y)==1 || 
-					(M.get(x,y)==0 && M.get(x-1,y)!=0 && M.get(x+1,y)!=0) || 
+			if(M.get(x,y)==1 ||
+					(M.get(x,y)==0 && M.get(x-1,y)!=0 && M.get(x+1,y)!=0) ||
 					(M.get(x,y)==0 && M.get(x,y-1)!=0  && M.get(x,y+1)!=0))	{ //matrix[x][y]==1
 				M.set(x,y,2); //matrix[x][y]=2;
 				/*fillFromPoint(x-1,y);
@@ -748,9 +748,9 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 				ptStack.push(new Point(x+1,y));
 				ptStack.push(new Point(x,y+1));
 			}
-		} 		
+		}
 	};
-	
+
 	isBorderPoint = function(x,y){
 		if(M.get(x,y)!=2) return false; //matrix[x][y]!=2
 		//zeroNeighbor = false;
@@ -764,8 +764,8 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 		if(M.get(x-1,y+1)==0) return true; //matrix[x-1][y+1]
 		return false;
 	};
-	
-	
+
+
 	constructPath = function(path, x,y){
 		if(isBorderPoint(x,y)){
 			M.set(x,y,3);//matrix[x][y]=3;
@@ -791,20 +791,20 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 			if(constructPath(path, x, y-1)) return true;
 			if(constructPath(path, x+1, y)) return true;
 			if(constructPath(path, x, y+1)) return true;
-			
-			
+
+
 			if(constructPath(path, x-1, y-1)) return true;
 			if(constructPath(path, x+1, y-1)) return true;
 			if(constructPath(path, x+1, y+1)) return true;
 			if(constructPath(path, x-1, y+1)) return true;
-			
+
 			return true;
 		}
 		else {
 			return false;
         }
 	};
-	
+
 	var paths = [];
 	var mini = 0;
 	var minj = 0;
@@ -817,10 +817,10 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 				var path = [];
 				constructPath(path, i, j);
 				paths.push(path);
-			} 
+			}
 		}
 	}
-	
+
 	/*d3.select("#debugtable").selectAll("tr").remove;
 	var debugTab = d3.select("#debugtable");
 	for(var i=0; i<M.matrix.length; i++){
@@ -829,7 +829,7 @@ PuroController.prototype.createVocabPaths = function(vocab) {
 			tr.append("td").text(M.get(i,j));
 		}
 	}*/
-	
+
 	return {
 		paths: paths,
 		matrixPoints: M.debugPts
@@ -999,7 +999,7 @@ BRelation.prototype.linkIntersection = function(link, nearTo){
 		new Line(new Point(this.x-this.width/2, this.y), new Point(this.x, this.y-this.height/2)),
 		new Line(new Point(this.x-this.width/2, this.y), new Point(this.x, this.y+this.height/2)),
 		new Line(new Point(this.x+this.width/2, this.y), new Point(this.x, this.y-this.height/2)),
-		new Line(new Point(this.x+this.width/2, this.y), new Point(this.x, this.y+this.height/2)),		
+		new Line(new Point(this.x+this.width/2, this.y), new Point(this.x, this.y+this.height/2)),
 	];
 	var intersections = [];
 	for(var i=0; i<4; i++) {
@@ -1034,7 +1034,7 @@ BValuation.prototype.linkIntersection = function(link, nearTo){
 		new Line(new Point(this.x-this.width/2, this.y+this.height/2), new Point(this.x+this.width/2, this.y+this.height/2)),
 		new Line(new Point(this.x+this.width/2, this.y+this.height/2), new Point(this.x+this.width/2+this.slope, this.y-this.height/2)),
 		new Line(new Point(this.x+this.width/2+this.slope, this.y-this.height/2), new Point(this.x-this.width/2+this.slope, this.y-this.height/2)),
-		new Line(new Point(this.x-this.width/2+this.slope, this.y-this.height/2), new Point(this.x-this.width/2, this.y+this.height/2)),		
+		new Line(new Point(this.x-this.width/2+this.slope, this.y-this.height/2), new Point(this.x-this.width/2, this.y+this.height/2)),
 	];
 	var intersections = [];
 	for(var i=0; i<4; i++) {

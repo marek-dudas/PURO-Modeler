@@ -30,7 +30,7 @@ SubTypeOfLink.prototype.rdfDefine = function() {
 BLink.prototype.rdfLink = function() {
 	// valuation links are treated specially and by rdfDefine
 	if(! (this.end instanceof BValuation))	{
-		if(this.getTrimmedName()=="") 
+		if(this.getTrimmedName()=="")
 			PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:linkedTo",this.end.getCURI());
 		else if(this.end.getType() == "mapping") {
 			PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:mappedTo", this.end.getURI());
@@ -47,7 +47,7 @@ InstanceOfLink.prototype.rdfLink = function() {
 };
 
 SubTypeOfLink.prototype.rdfLink = function() {
-	PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:subTypeOf", this.end.getCURI());	
+	PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:subTypeOf", this.end.getCURI());
 };
 
 var PuroRdfSerializer = {};
@@ -82,14 +82,14 @@ PuroRdfSerializer.defineBElement = function(elementType, elementName, elementCur
 	this.addTriple(PuroRdfSerializer.createResource(elementCuri),
 			PuroRdfSerializer.createResource('rdfs:label'),
 			$.rdf.literal('"'+elementName+'"'));*/
-	
+
 	this.addTriple(elementCuri,
 			'rdf:type',
 			'puro:'+elementType);
 	this.addTriple(elementCuri,
 			'rdfs:label',
 			'"'+elementName+'"');
-	
+
 	if(bElement!=null) {
 		this.addTriple(elementCuri, 'puro:modelingStyle', 'puro:'+bElement.modelingStyle.name);
 		this.addTriple(elementCuri, 'puro:rigid', '"'+(!bElement.fluent)+'"');
@@ -112,9 +112,9 @@ PuroRdfSerializer.upload = function(targetWindow) {
 	$.post(
 			transformServerUrl, //http://localhost/PUROM-server/
 		  dataString
-		) 
+		)
 		.done(function( data ) {
-			
+
 			targetWindow.document.write(data);
 		  });
 };
@@ -145,6 +145,27 @@ for(var i=0; i<model.links.length; i++)
 	model.links[i].rdfLink();
 }
 
+
+PuroRdfSerializer.uploadRdfExport = function (model, callback) {
+
+	var xhr = new XMLHttpRequest();
+	var formData = new FormData();
+	this.initData();
+	this.serialize(model);
+	var dataDOM = this.data.dump({format:'application/rdf+xml'});
+	var dataString = (new XMLSerializer()).serializeToString(dataDOM);
+	var blob = new Blob([dataString], {type: 'application/rdf+xml;charset=utf-8'});
+	var file = new File([blob], PuroEditor.control.currentModelId);
+	xhr.open('POST', saveExportUrl, true);
+	if (callback) {
+		xhr.onreadystatechange = function () {
+			if (this.readyState === XMLHttpRequest.DONE) callback();
+		};
+	}
+	formData.append('rdfxml', file);
+	xhr.send(formData);
+};
+
 PuroRdfSerializer.getOFMVisualizationUrl = function(model, callback) {
 	this.initData();
 	this.serialize(model);
@@ -153,7 +174,7 @@ PuroRdfSerializer.getOFMVisualizationUrl = function(model, callback) {
 	$.post(
 			obowlmorphServerUrl, //http://localhost/PUROM-server/
 		  dataString
-		) 
+		)
 		.done(callback);
 }
 
@@ -165,16 +186,16 @@ PuroRdfSerializer.getMappings = function(model, callback) {
 	$.post(
 			mappingServerUrl, //http://localhost/PUROM-server/
 		  dataString
-		) 
+		)
 		.done(callback);
 };
 
 PuroRdfSerializer.transformToVariants = function(model) {
 	var win = window.open("", "_blank", "scrollbars=yes, width=900, height=800");
 	this.initData();
-	
-	this.serialize(model);	
-	
+
+	this.serialize(model);
+
 	this.upload(win);
-	
+
 };

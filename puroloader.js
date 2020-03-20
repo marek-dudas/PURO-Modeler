@@ -3,11 +3,11 @@ var CouchProxy = {
 		$.get(couchProxyUrl+"?do=getall", "", callback, "json");
 	},
 	getModel: function(modelId, callback) {
-		$.get(couchProxyUrl+"?do=getdoc&docId="+modelId, "", callback, "json");		
+		$.get(couchProxyUrl+"?do=getdoc&docId="+modelId, "", callback, "json");
 	},
 	saveModel: function(modelId, model, callback) {
-		//$.post(couchProxyUrl+"?do=savedoc&docId="+modelId, JSON.stringify(model), callback, "json");		
-		
+		//$.post(couchProxyUrl+"?do=savedoc&docId="+modelId, JSON.stringify(model), callback, "json");
+
 		$.ajax(couchProxyUrl+"?do=savedoc&docId="+modelId, {
 		    data : JSON.stringify(model),
 		    contentType : 'application/json',
@@ -16,8 +16,8 @@ var CouchProxy = {
 		});
 	},
 	addModel: function(model, callback) {
-		//$.post(couchProxyUrl+"?do=adddoc", JSON.stringify(model), callback, "json");		
-		
+		//$.post(couchProxyUrl+"?do=adddoc", JSON.stringify(model), callback, "json");
+
 		$.ajax(couchProxyUrl+"?do=adddoc", {
 		    data : JSON.stringify(model),
 		    contentType : 'application/json',
@@ -28,7 +28,7 @@ var CouchProxy = {
 	deleteModel: function(modelId, callback) {
 		this.getModel(modelId, function(data) {
 			$.get(couchProxyUrl+"?do=deldoc&docId="+modelId+"&rev="+data._rev, "", callback, "json");
-		});		
+		});
 	}
 };
 
@@ -99,7 +99,7 @@ PuroLoader.prototype.saveRevisionId = function(result){
 	this.model.oldId = resultObj.id;
 	PuroEditor.control.currentModelId = resultObj.id;
 	if(this.afterSave != null) this.afterSave();
-}
+};
 
 PuroLoader.prototype.getRandomInt = function(){
 	max = 100000000;
@@ -131,7 +131,7 @@ PuroLoader.prototype.deleteModel = function(modelId,callback) {
 
 PuroLoader.prototype.getOBMs = function(puroview, user) {
 	//var result = this.store.fetch({sort: [{attribute: "name"}]}).results; //{sort: [{attribute: "name"}]}
-	
+
 	/*
 	var puroloader = this;
 	this.store.target = url;
@@ -157,7 +157,7 @@ PuroLoader.prototype.getOBMs = function(puroview, user) {
 		}
 		puroview.fillOBMList(obms, PuroAppSettings.userModelsListElement);
         puroview.fillOBMList(examples, PuroAppSettings.exampleListElement);
-	});	
+	});
 };
 
 PuroLoader.prototype.getOBMbyId = function(id, controller) {
@@ -168,7 +168,7 @@ PuroLoader.prototype.getOBMbyId = function(id, controller) {
 		rebuiltModel.rebuildFrom(desOBM);
 		controller.loadModelFromJStore(rebuiltModel);
 	});*/
-	
+
 	CouchProxy.getModel(id, function(obm){
 		//desOBM = JSON.parse(obm);
 		rebuiltModel = new PuroModel();
@@ -179,5 +179,5 @@ PuroLoader.prototype.getOBMbyId = function(id, controller) {
 		rebuiltModel.lastModified = new Date(obm.modified);
 		controller.loadModelFromJStore(rebuiltModel);
 	});
-	
+
 };
