@@ -224,6 +224,7 @@ PuroController.prototype.creationLinkMouseUp = function (creationLink) {
 	this.creationLink = creationLink;
 	this.linkOptions = LinkRules.possibleLinkTypes(creationLink);
 	if(this.linkOptions.length > 1) {
+		//this.menuLinkTypes.open = false;
 		this.menuLinkTypesItems.selectAll('li').remove();
 		var dMenuItems = this.menuLinkTypesItems.selectAll('li').data(this.linkOptions);
         dMenuItems.enter().append('li')
@@ -561,6 +562,11 @@ PuroController.prototype.loadMorph = function() {
 	else this.openMorph();
 };
 
+PuroController.prototype.loadOntoUML = function() {
+	if(this.savingEnabled()) this.saveModel(function () {window.location=ontoUMLUrl+'?model='+this.currentModelId});
+	else this.openMorph();
+};
+
 PuroController.prototype.loadEditor = function() {
 	var user = this.getCurrentUser();
 	window.location.href = "../?user="+user+"&pass="+(this.pass)+"&model="+this.currentModelId;
@@ -574,6 +580,7 @@ PuroController.prototype.setUser = function(user, pass) {
     $('#btnSaveAs').show();
 	$('#btnMorph').show();
 	$('#btnLoggedIn').show();
+	$('#btnOntoUML').show();
 	$('#spanUser').text((user != null && user != 'null') ? user : 'anonymous');
 };
 

@@ -6,10 +6,10 @@
         <title>PURO Modeler</title>
         <!--
         <link rel="stylesheet" href="dijit/themes/claro/claro.css">
-	
+
 		<script>dojoConfig = {parseOnLoad: true};</script>
 		<script src='/puromodeler/dojo/dojo.js'></script>
-	
+
 		<script>
 			require(["dojo/parser", "dijit/Dialog"]); //, "dijit/form/Button", "dijit/form/TextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox"
 			1064221756456-3qi62lgogm664o4lf9nh3atck4lcc5h4.apps.googleusercontent.com
@@ -23,8 +23,8 @@
 		<meta name="google-signin-scope" content="email">
 		<meta name="google-signin-client_id" content="1064221756456-3qi62lgogm664o4lf9nh3atck4lcc5h4.apps.googleusercontent.com">
 		<script src="https://apis.google.com/js/platform.js"></script>
-	
-		<script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+
+		<script src="https://unpkg.com/material-components-web@2.2.0/dist/material-components-web.min.js"></script>
 	    <script src="d3.v3.js"></script>
 	    <script src="purostrings.js"></script>
 	    <script src="settings.js"></script>
@@ -38,9 +38,9 @@
 	  	<script src="puroEditor.js"></script>
 
 		<script src="FileSaver.js"></script>
-	  	
+
 		 <!--<script src='dojo/dojo.js' djConfig="isDebug: true, parseOnLoad: true"></script>-->
-		 
+
 		<!-- <script src='/puromodeler/ojox/data/XmlStore.js'></script> -->
 
 
@@ -74,7 +74,8 @@
 					<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
 						<button id="btnLogin" class="mdc-button mdc-button--flat mdc-theme--on-primary" data-mdc-auto-init="MDCRipple">Login</button>
 						<button id="btnSave" class="mdc-button mdc-button--flat mdc-theme--on-primary" data-mdc-auto-init="MDCRipple">Save model</button>
-						<button id="btnMorph" class="mdc-button mdc-button--flat mdc-theme--on-secondary" data-mdc-auto-init="MDCRipple">Build ontology</button>
+						<button id="btnMorph" class="mdc-button mdc-button--flat mdc-theme--on-secondary" data-mdc-auto-init="MDCRipple">Build OWL</button>
+						<button id="btnOntoUML" class="mdc-button mdc-button--flat mdc-theme--on-secondary" data-mdc-auto-init="MDCRipple">Build OntoUML</button>
 						<a href="#" id="btnLoggedIn" class="material-icons mdc-top-app-bar__action-item">person</a>
 						<div class="mdc-menu-surface--anchor">
 							<a href="#" id="btnMainMenu" class="material-icons mdc-top-app-bar__action-item" aria-label="Menu" alt="Menu">more_vert</a>
@@ -115,7 +116,7 @@
 			</main>
 		</div>
 		<div class="mdc-menu mdc-menu-surface" id="menuLinkType">
-			<ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" id="menuLinkTypeItems">
+			<ul class="mdc-list" role="menu" aria-orientation="vertical" id="menuLinkTypeItems">
 
 			</ul>
 		</div>
