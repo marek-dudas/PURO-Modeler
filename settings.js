@@ -2,7 +2,7 @@ var serverRoot = "http://protegeserver.cz/purom5/";
 
 var couchdbUrl = "http://admin:c0d1988@protegeserver.cz/puromodels/"; //"http://localhost/couchdb/puromodels2/";//"http://admin:c0d1988@lod2-dev.vse.cz/couchdb/puromodels2/"; //"http://localhost/couchdb/puromodels/""http://user:pasword@protegeserver.cz/couchdb";
 
-var ontoUMLUrl = "https://tomiaro.github.io/puro-onto-test/";
+var ontoUMLUrl = "http://protegeserver.cz/puro-ontouml/";
 
 var transformServerUrl = serverRoot+"server/purom-transform.php";  //"http://localhost/PUROM-server/purom-transform.php""http://lod2-dev.vse.cz/puromodeler/server/purom-transform.php";
 
@@ -36,7 +36,7 @@ var PuroAppSettings = {
 		modelingStyleBoxEnabled: false,
 		mappingBoxEnabled: false,
 		vocabVisualizationEnabled: true,
-		debug: true,
+		debug: false,
 		loadDebugJson: false,
 	    powerUser: 'marek.kasle.na@gmail.com',
 		exampleMark: '(-example-)',

@@ -27,10 +27,10 @@ SubTypeOfLink.prototype.rdfDefine = function() {
 	//do nothing
 };
 
-BLink.prototype.rdfLink = function() {
+BLink.prototype.rdfLink = function(noLinkNames = false) {
 	// valuation links are treated specially and by rdfDefine
 	if(! (this.end instanceof BValuation))	{
-		if(this.getTrimmedName()=="")
+		if(this.getTrimmedName()=="" || noLinkNames)
 			PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:linkedTo",this.end.getCURI());
 		else if(this.end.getType() == "mapping") {
 			PuroRdfSerializer.addTriple(this.start.getCURI(), "puro:mappedTo", this.end.getURI());
@@ -135,14 +135,14 @@ function serializaAttribute (model, attribute) {
 	}
 }
 
-PuroRdfSerializer.serialize = function(model) {
+PuroRdfSerializer.serialize = function(model, noLinkNames = false) {
 for(var i=0; i<model.nodes.length; i++)
 	if(model.nodes[i] instanceof BAttribute) serializaAttribute(model, model.nodes[i]);
 	else if(!(model.nodes[i] instanceof BValuation || model.nodes[i].getType()=="mapping")) model.nodes[i].rdfDefine();
 for(var i=0; i<model.links.length; i++)
 	model.links[i].rdfDefine();
 for(var i=0; i<model.links.length; i++)
-	model.links[i].rdfLink();
+	model.links[i].rdfLink(noLinkNames);
 }
 
 
@@ -151,7 +151,7 @@ PuroRdfSerializer.uploadRdfExport = function (model, callback) {
 	var xhr = new XMLHttpRequest();
 	var formData = new FormData();
 	this.initData();
-	this.serialize(model);
+	this.serialize(model, true);
 	var dataDOM = this.data.dump({format:'application/rdf+xml'});
 	var dataString = (new XMLSerializer()).serializeToString(dataDOM);
 	var blob = new Blob([dataString], {type: 'application/rdf+xml;charset=utf-8'});
