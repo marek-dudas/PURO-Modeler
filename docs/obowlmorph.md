@@ -2,8 +2,8 @@
 
 OBOWLMorph is tool for transforming PURO models into OWL ontology skeletons
 
-You can access it at [protegeserver.cz/purom4/OBOWLMorph](http://protegeserver.cz/purom4/OBOWLMorph).
-But the best way is to first create a model in [PURO Modeler](http://protegeserver.cz/purom4) and
+You can access it at [protegeserver.cz/purom5/OBOWLMorph](http://protegeserver.cz/purom5/OBOWLMorph).
+But the best way is to first create a model in [PURO Modeler](http://protegeserver.cz/purom5) and
 go to OBOWLMorph from there.
 
 ## Authors
