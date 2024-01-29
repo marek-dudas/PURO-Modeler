@@ -15,6 +15,7 @@ var purostr = {
 	invalidIncrement:'incrementing level on invalid bterm',
 	BinstanceOf: "B-instanceOf",
 	BsubTypeOf: "B-subtypeOf",
+	note: "Note",
 	someObjects: 'Some_objects',
 	disjoint: 'disjoint',
 	link: "link",

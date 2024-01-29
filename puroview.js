@@ -851,7 +851,7 @@ PuroView.prototype.showAdvanced = function (advancedOn) {
 PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 	this.toolSvg = d3.select("#"+toolElement).append("svg")
 		.attr("width", 300)
-		.attr("height", 300);
+		.attr("height", 400);
 
 	addButton = function(label, type, width, height, x, y, pathFunction, onClickFunction, specialColor) {
 		var gButton = PuroEditor.view.toolSvg.append("g").classed(type, true);
@@ -902,6 +902,8 @@ PuroView.prototype.createToolbox = function(toolElement, puroControl) {
 			puroControl.setTool(puroControl.TOOL.createBValuation);});
     addButton("B-attribute", purostr.Battribute, 120, 30, 70, 110, BAttributePath, function(){
         puroControl.setTool(puroControl.TOOL.createBAttribute);});
+	addButton("Note", purostr.note, 100, 40, 70, 310, crispCornerPath, function() {
+		puroControl.setTool(puroControl.TOOL.note);});
     this.btnSomeObjects = addButton("Some objects", purostr.someObjects, 120, 60, 200, 210, SomeObjectsPath, function(){
             puroControl.setTool(puroControl.TOOL.createSomeObjects);});
     this.btnSomeObjects.style('visibility', 'hidden');
@@ -939,6 +941,12 @@ function BValuationPath(width, height) {
 
 function BAttributePath(width, height) {
     return "M"+(-width/2)+","+(0)+" l "+width/4+","+height/2 +" l "+width/2+","+0+" l "+width/4+","+(-height/2)+" l "+(-width/4)+","+(-height/2)+"l"+(-width/2)+",0z";
+}
+
+function crispCornerPath (width, height) {
+	const a = 20;
+	const s = 4;
+	return `M ${-width / 2 + a},${-height / 2} h${width - a - s} a${s},${s} 0 0 1 ${s},${s} v${height - a - s} a${a},${a} 0 0 1 ${-a},${a} h${-width + 2 * a} a${a},${a} 0 0 1 ${-a},${-a} v${-height + 2 * a} a${a},${a} 0 0 1 ${a},${-a} z`;
 }
 
 function vocabPath(fromPath) {
@@ -986,6 +994,12 @@ BAttribute.prototype.getPathData = function() {
     this.width=50;
     this.height=30;
     return BAttributePath(this.width, this.height);
+}
+
+Note.prototype.getPathData = function() {
+	this.width = 120;
+	this.height = 40;
+	return crispCornerPath(this.width, this.height);
 }
 
 BLink.prototype.dashed = function() {

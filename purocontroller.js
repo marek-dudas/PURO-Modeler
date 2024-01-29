@@ -1,7 +1,7 @@
 
 
 function PuroController(model){
-	this.TOOL = Object.freeze({select: {}, createBType: {}, createBValuation: {}, createBObject: {}, createBRelation: {}, createBAttribute: {}, createSomeObjects: {}, link: {}, instanceOfLink: {}, subtypeOfLink: {}, del: {}});
+	this.TOOL = Object.freeze({select: {}, createBType: {}, createBValuation: {}, createBObject: {}, createBRelation: {}, createBAttribute: {}, createSomeObjects: {}, link: {}, instanceOfLink: {}, subtypeOfLink: {}, del: {}, note: {}});
 	this.model = model;
 	this.activeTool = this.TOOL.select;
 	this.linkStart = null;
@@ -80,6 +80,10 @@ PuroController.prototype.setTool = function(tool){
             this.startNodeDrag(new SomeObjects("Some Objects"));
             d3.select("#tooltip").text("Click on the canvas (on the right) to add a new B-Relation.");
             break;
+		case this.TOOL.note:
+			this.startNodeDrag(new Note("Note"));
+			d3.select("#tooltip").text("Click on the canvas (on the right) to add a note or annotation.");
+			break;
 		case this.TOOL.link:
 			d3.select("#tooltip").text("Click on the node to start a link from there.");
 			break;
@@ -156,6 +160,10 @@ PuroController.prototype.canvasMouseDown = function(location, node){
         this.newNode(new SomeObjects("Some objects"), location);
         this.activeTool = this.TOOL.select;
     }
+	else if(this.activeTool === this.TOOL.note) {
+		this.newNode(new Note("Note or annotation"), location);
+		this.activeTool = this.TOOL.select;
+	}
 	else if(this.activeTool === this.TOOL.link
 		|| this.activeTool === this.TOOL.instanceOfLink
 		|| this.activeTool === this.TOOL.subtypeOfLink) {
@@ -289,7 +297,7 @@ PuroController.prototype.nodeDblClick = function(node) {
 		do {
 		var unique = false;
 		var result = prompt('Change the name of the entity',node.name);
-		result = result.replace(/[^a-zA-Z0-9 ]/g, "");
+		// result = result.replace(/[^a-zA-Z0-9 ]/g, "");
 		var validRename = false;
 		if(result)
 			{
@@ -1000,6 +1008,8 @@ function RectangleIntersection(link, nearTo){
 BObject.prototype.linkIntersection = RectangleIntersection;
 
 SomeObjects.prototype.linkIntersection = RectangleIntersection;
+
+Note.prototype.linkIntersection = RectangleIntersection;
 
 BRelation.prototype.linkIntersection = function(link, nearTo){
 	var lines = [

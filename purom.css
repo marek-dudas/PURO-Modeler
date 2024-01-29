@@ -70,6 +70,11 @@ circle {
     stroke: none;
 }
 
+.Note path {
+    fill: #A8AA94;
+    stroke:none;
+}
+
 .Some_objects path {
     fill: #B1DDF0;
     stroke: #000;
@@ -126,7 +131,7 @@ text.vocabPath {
 
 .toolbox {
     width: 290px;
-    height: 330px;
+    height: 430px;
     position: absolute;
     right: 10px;
     top: 70px;

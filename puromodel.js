@@ -112,12 +112,19 @@ function BRelation(name) {
 	this.puroTerm = puroOntology.Brelation;
 }
 
+function Note(text) {
+	BTerm.call(this, text);
+	this.type=purostr.note;
+	this.puroTerm = 'note';
+}
+
 BType.prototype = Object.create(BTerm.prototype);
 BObject.prototype = Object.create(BTerm.prototype);
 SomeObjects.prototype = Object.create(BTerm.prototype);
 BValuation.prototype = Object.create(BTerm.prototype);
 BRelation.prototype = Object.create(BTerm.prototype);
 BAttribute.prototype = Object.create(BTerm.prototype);
+Note.prototype = Object.create(BTerm.prototype);
 
 BType.prototype.constructor = BType;
 BObject.prototype.constructor = BObject;
@@ -125,6 +132,7 @@ BValuation.prototype.constructor = BValuation;
 BRelation.prototype.constructor = BRelation;
 BAttribute.prototype.constructor = BAttribute;
 SomeObjects.prototype.constructor = SomeObjects;
+Note.prototype.constructor = Note;
 
 BTerm.prototype.initMappings = function() {
 	this.mappings = [];
@@ -152,7 +160,7 @@ BTerm.prototype.incLevel = function() {
 };
 
 BTerm.prototype.getRdfName = function() {
-	var rdfName = this.name.replace(/ /g, "_");
+	var rdfName = encodeURIComponent(this.name);//this.name.replace(/ /g, "_");
 	return rdfName;
 };
 
@@ -165,7 +173,7 @@ BTerm.prototype.getURI = function() {
 };
 
 BTerm.prototype.isValidLabel = function(label, unique) {
-	if(label && unique) return true;
+	if(label && label.length > 0 && unique) return true;
 	else return false;
 }
 
@@ -220,8 +228,8 @@ BLink.prototype.isValidLabel = function(label, unique) {
 }
 
 BLink.prototype.getTrimmedName = function() {
-	var name = this.name.replace(/ /g, "_");
-	if(name == "_") name = "";
+	// var name = encodeURIComponent(this.name); // this.name.replace(/ /g, "_");
+	// if(name == "_") name = "";
 	return name;
 };
 
@@ -229,7 +237,7 @@ BLink.prototype.getRdfName = function() {
 	if(this.getTrimmedName()=="") return "";
 	else {
 		var rdfName = this.start.getRdfName() + "_" + this.getTrimmedName()+ "_" + this.end.getRdfName();
-		return rdfName;
+		return encodeURIComponent(rdfName);
 	}	
 };
 
@@ -366,7 +374,8 @@ PuroModel.prototype.addNode = function(node) {
 		|| node instanceof BRelation
 		|| node instanceof BObject
 	|| node instanceof BAttribute
-	|| node instanceof SomeObjects) {
+	|| node instanceof SomeObjects
+	|| node instanceof Note) {
 			node.id = this.idCounter++;
 			this.nodes.push(node);
 			this.updateBTypeLevels();
@@ -429,6 +438,7 @@ PuroModel.prototype.rebuildFrom = function(srcModel) {
 			case purostr.Brelation: newNode = new BRelation(srcModel.nodes[i].name); break;
             case purostr.Battribute: newNode = new BAttribute(srcModel.nodes[i].name); break;
             case purostr.someObjects: newNode = new SomeObjects(srcModel.nodes[i].name); break;
+			case purostr.note: newNode = new Note(srcModel.nodes[i].name); break;
 			default: newNode = new BTerm(srcModel.nodes[i].name);
 		}
 		newNode.id = srcModel.nodes[i].id;
@@ -600,15 +610,18 @@ LinkRules = {
             if (l.endNode instanceof BRelation) possibleLinks.push(linkTypes.participates);
             if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
             if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
+			if (l.endNode instanceof Note) possibleLinks.push(linkTypes.link);
         }
         else if (l.startNode instanceof BAttribute) {
             if (l.endNode instanceof BValuation) possibleLinks.push(linkTypes.link);
             if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
+			if (l.endNode instanceof Note) possibleLinks.push(linkTypes.link);
         }
         else if (l.startNode instanceof BRelation) {
             if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
             if (l.endNode instanceof BObject || l.endNode instanceof BType || l.endNode instanceof SomeObjects || l.endNode instanceof BRelation) possibleLinks.push(linkTypes.participates);
             if (l.endNode instanceof BType) possibleLinks.push(linkTypes.instanceOf);
+			if (l.endNode instanceof Note) possibleLinks.push(linkTypes.link);
         }
         else if (l.startNode instanceof BType) {
             if (l.endNode instanceof BType) {
@@ -618,7 +631,11 @@ LinkRules = {
             }
             if (l.endNode instanceof BRelation) possibleLinks.push(linkTypes.participates);
             if (l.endNode instanceof BAttribute) possibleLinks.push(linkTypes.link);
+			if (l.endNode instanceof Note) possibleLinks.push(linkTypes.link);
         }
+		else if (l.startNode instanceof Note) {
+			possibleLinks.push(linkTypes.link);
+		}
         return possibleLinks;
     },
 	mayHaveOutlink: function (node) {
