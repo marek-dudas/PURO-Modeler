@@ -134,7 +134,7 @@ PuroController.prototype.delNode = function(node) {
     }
 };
 
-PuroController.prototype.canvasMouseDown = function(location, node){
+PuroController.prototype.canvasMouseDown = function(location, node, shiftKey){
 	this.view.hideNodeControls();
 	if(this.activeTool === this.TOOL.createBType) {
 		this.newNode(new BType("new BType"), location);
@@ -217,7 +217,7 @@ PuroController.prototype.canvasMouseDown = function(location, node){
 	}
 	else if(this.activeTool === this.TOOL.select) {
 		//if(node!=null && this.model.nodes.indexOf(node)>=0) {
-			this.selectNode(node, d3.event.shiftKey);
+			this.selectNode(node, shiftKey);
 			this.view.updateView();
 		//}
 	}

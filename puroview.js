@@ -1,10 +1,11 @@
 /**
  * @author marek_000
  */
+const lineColor = 'rgb(145,143,143)';
 function PuroView(width, height, viewingElement){
 	this.width =  width;
 	this.height = height;
-	this.colors = d3.scale.category10();
+	this.colors = d3.scaleOrdinal(d3.schemeCategory10); //d3.scale.category10();
     this.layoutRunning = false;
 
     this.viewingElement = d3.select("#"+viewingElement);
@@ -26,7 +27,7 @@ function PuroView(width, height, viewingElement){
   	.append('svg:path')
 	    //.attr('d', 'M0,-5L10,0L0,5')
 	    .attr('d', 'M2,2 L2,11 L10,6')
-	    .style("fill", "#ccc");
+	    .style("fill", lineColor); //ccc
 
 	this.svg.append('svg:defs').append('svg:marker')
 	    .attr('id', 'start-arrow')
@@ -38,7 +39,7 @@ function PuroView(width, height, viewingElement){
 	    .attr('orient', 'auto')
   	.append('svg:path')
     	.attr('d', 'M10,0L0,6L10,10')
-    	.attr('fill', '#ccc');
+    	.attr('fill', lineColor);
 
     this.svg.append('svg:defs').append('filter')
     	.attr('id', 'blur-filter').append('feGaussianBlur')
@@ -48,9 +49,12 @@ function PuroView(width, height, viewingElement){
     this.svg = this.svg.append("svg:g");
 
 
-	this.nodes = this.svg.append("svg:g").selectAll("g");
-	this.edges = this.svg.append("svg:g").selectAll("line");
-	this.linktext = this.svg.append("svg:g").selectAll("g.linklabelholder");
+	this.nodesGroup = this.svg.append("svg:g");
+	this.nodes = this.nodesGroup.selectAll("g");
+	this.edgesGroup = this.svg.append("svg:g")
+	this.edges = this.edgesGroup.selectAll("line");
+	this.linkTextGroup =  this.svg.append("svg:g")
+	this.linktext = this.linkTextGroup.selectAll("g.linklabelholder");
 	this.creationLink = null;
 
 	if(PuroAppSettings.vocabComparisonEnabled) {
@@ -59,17 +63,18 @@ function PuroView(width, height, viewingElement){
 	}
 
 			// create the zoom listener
-	var zoomListener = d3.behavior.zoom()
+	var zoomListener = d3.zoom()
 	  .scaleExtent([0.1, 2])
+		.filter((event) => event.type !== 'dblclick')
 	  .on("zoom", zoomHandler);
 	  //.on("dblclick.zoom", function(){});
 	this.zoomListener = zoomListener;
 
 	var mainG = this.svg;
 	// function for handling zoom event
-	function zoomHandler() {
-		var scale = 1 - ( (1 - d3.event.scale) * 0.1 );
-	  mainG.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	function zoomHandler({transform}) {
+		//var scale = 1 - ( (1 - d3.event.scale) * 0.1 );
+	  mainG.attr("transform", transform);
 	}
 
 	zoomListener(this.rootSvg);
@@ -201,11 +206,11 @@ PuroView.prototype.showCreationLink = function (fromNode) {
         if (!this.creationLink) {
             this.creationLink = CreationLink(this.svg);
             var puroView = this;
-            this.creationLink.getSvg().on("mousedown", function () {
-                d3.event.stopPropagation();
+            this.creationLink.getSvg().on("mousedown", function (event) {
+                event.stopPropagation();
                 puroView.creationLink.startDrag();
-                puroView.rootSvg.on("mousemove", function () {
-                    var location = d3.mouse(puroView.svg.node());
+                puroView.rootSvg.on("mousemove", function (event) {
+                    var location = d3.pointer(event, puroView.svg.node());
                     var mousePoint = {x: location[0], y: location[1]};
                     var nearestNode = nearPoint(mousePoint, puroView.creationLink.otherNodes);
                     if (nearestNode && pointDistance(mousePoint, nearestNode) < 150
@@ -237,7 +242,7 @@ PuroView.prototype.updateSize = function() {
 		width: canvasRect.width
     };
 	this.rootSvg.attr("width", currentSize.width).attr("height", currentSize.height); // -12
-	this.layout.size([currentSize.width, currentSize.height]);
+	// this.layout.size([currentSize.width, currentSize.height]);
 	this.width = currentSize.width;
 	this.height = currentSize.height;
 
@@ -256,16 +261,20 @@ PuroView.prototype.centerModel = function() {
 PuroView.prototype.startLayout = function() {
 	var thisView = this;
 	this.tickCounter = 0;
-	this.layout = d3.layout.force()
-	    .size([this.width, this.height])
-	    .nodes(this.model.nodes)
-	    .links(this.model.links)
-	    .linkDistance(150) //200
-	    .charge(-1200) //-1500
+	this.layout = d3.forceSimulation(this.model.nodes) //.layout.force()
+	    //.size([this.width, this.height])
+	    //.nodes(this.model.nodes)
+	    //.links(this.model.links)
+	    //.linkDistance(150) //200
+	    //.charge(-1200) //-1500
+		.force("link", d3.forceLink(this.model.links).id(d => d.id))
+		.force("charge", d3.forceManyBody())
+		.force("center", d3.forceCenter(this.width /2, this.height /2))
 	    .on("tick", function() {
 	    	thisView.tick();
 
 	    });
+	if (!this.layoutRunning) this.layout.stop();
 	var forceLayout = this.layout;
 	//this.layout.drag().on("dragstart", function() { d3.event.sourceEvent.stopPropagation();});
 };
@@ -277,8 +286,8 @@ PuroView.prototype.decorateControls = function(toolBoxElement, puroControl){
 
 	this.createToolbox(toolBoxElement, puroControl);
 
-	this.rootSvg.on("click", function(){
-		puroControl.canvasMouseDown(d3.mouse(PuroEditor.view.svg.node()), null);
+	this.rootSvg.on("click", function(event){
+		puroControl.canvasMouseDown(d3.pointer(event, PuroEditor.view.svg.node()), null);
 	});
 
 	var view = this;
@@ -422,8 +431,8 @@ PuroView.prototype.fillOBMList = function(obms, listElementId) {
                 .text('delete')
                 .attr("modelid", obms[i]._id)
                 .attr("modelname", obms[i].name)
-                .on("click", function () {
-                    d3.event.stopPropagation();
+                .on("click", function (event) {
+                    event.stopPropagation();
                     var confirmation = true;
                     if (this.attributes.modelname) confirmation = confirm("Do you really want to delete model " + this.attributes.modelname.value + "?");
                     var idToDelete = this.attributes.modelid.value;
@@ -440,7 +449,7 @@ PuroView.prototype.setData = function(model) {
 };
 
 PuroView.prototype.tick = function() {
-	if(this.model.links.length>0 && this.edges.length>0){
+	if(this.model.links.length>0){
 		this.edges.attr("x1", function(d) { d.countStartFromIntersection(); return d.startX; })
 	     .attr("y1", function(d) { return d.startY; })
 	     .attr("x2", function(d) { d.countEndFromIntersection(); return d.endX;})
@@ -451,7 +460,7 @@ PuroView.prototype.tick = function() {
     		return 'translate(' + p.x + ',' + p.y + ')';});
     }
 
-    if(this.model.nodes.length>0 && this.nodes.length>0){
+    if(this.model.nodes.length>0){
 		/*this.nodes.attr("cx", function(d) {
 			return d.x; })
 	     .attr("cy", function(d) {
@@ -495,17 +504,17 @@ PuroView.prototype.setDraggedNode = function(node) {
     .on("mousemove", mousemove)
     .on("mouseup", mouseup);
 
-	d3.event.preventDefault(); // disable text dragging
+	// d3.event.preventDefault(); // disable text dragging
 
-	function mousemove() {
-		PuroEditor.view.dragSvg.style("left", d3.mouse(d3.select("body").node())[0]+"px").style("top", d3.mouse(d3.select("body").node())[1]+"px");
+	function mousemove(event) {
+		PuroEditor.view.dragSvg.style("left", d3.pointer(event, d3.select("body").node())[0]+"px").style("top", d3.pointer(event, d3.select("body").node())[1]+"px");
 	}
 
-	function mouseup() {
+	function mouseup(event) {
 		 w.on("mousemove", null).on("mouseup", null);
 		 PuroEditor.view.dragSvg.remove();
-		 var mousePos = d3.mouse(PuroEditor.view.viewingElement.node());
-		 if(mousePos[0]>0 && mousePos[0]<PuroEditor.view.width && mousePos[1]>0 && mousePos[1]<PuroEditor.view.height) PuroEditor.control.canvasMouseDown(d3.mouse(PuroEditor.view.svg.node()));
+		 var mousePos = d3.pointer(event, PuroEditor.view.viewingElement.node());
+		 if(mousePos[0]>0 && mousePos[0]<PuroEditor.view.width && mousePos[1]>0 && mousePos[1]<PuroEditor.view.height) PuroEditor.control.canvasMouseDown(d3.pointer(event, PuroEditor.view.svg.node(), event.shiftKey));
 
 		 PuroEditor.control.setTool(PuroEditor.control.TOOL.select);
 	}
@@ -548,8 +557,8 @@ PuroView.prototype.updateView = function() {
 
 	this.edges.enter()
 	        .append("line")
-	        .style("stroke", function(d) {return (d.errors.hasError)?"#f00":"#ccc";})
-	        .style("stroke-width", 2)
+	        .style("stroke", function(d) {return (d.errors.hasError)?"#f00":"lineColor";}) //ccc
+	        .style("stroke-width", 3)
 		    .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
 		    .style('marker-end', function(d) { return LinkRules.hasEndArrow(d) ? 'url(#end-arrow)' : ''; })
 		    .style("stroke-dasharray", function(d) {return d.dashed();});
@@ -557,14 +566,14 @@ PuroView.prototype.updateView = function() {
 
 	this.linktext = this.linktext.data(this.model.links, function(d) {return d.id;});
     var linktextEnter =this.linktext.enter().append("g").attr("class", "linklabelholder")
-	        .on("mousedown", function(d){
+	        .on("mousedown", function(event, d){
 	        	puroControl.canvasMouseDown(d3.mouse(this), d);}
 	        )
-		.on("mouseover", function(d){
+		.on("mouseover", function(event, d){
 			if(!PuroAppSettings.modelingStyleBoxEnabled)
             view.showDelButton(d, this);
 		})
-     .on('dblclick', function(d){
+     .on('dblclick', function(event, d){
 			     puroControl.nodeDblClick(d);
 			      var text = d3.select(this).select("text")[0][0];
     			  text.selectSubString(0,0);
@@ -588,28 +597,28 @@ PuroView.prototype.updateView = function() {
     	var canvasSvg = this.svg;
 	    this.nodes = this.nodes.data(this.model.nodes, function(d) {return d.id;});
 
-	    var node_drag = d3.behavior.drag()
-        .on("dragstart", dragstart)
+	    var node_drag = d3.drag()
+        .on("start", dragstart)
         .on("drag", dragmove)
-        .on("dragend", dragend);
+        .on("end", dragend);
 
         var view = this;
 
-	    function dragstart(d, i) {
+	    function dragstart(event, d) {
 	        view.layout.stop(); // stops the force auto positioning before you start dragging
 			if (view.creationLink) view.creationLink.hide();
-	        d3.event.sourceEvent.stopPropagation();
+	        event.sourceEvent.stopPropagation();
 	    }
 
-	    function dragmove(d, i) {
-	        d.px += d3.event.dx;
-	        d.py += d3.event.dy;
-	        d.x += d3.event.dx;
-	        d.y += d3.event.dy;
+	    function dragmove(event, d) {
+	        d.px += event.dx;
+	        d.py += event.dy;
+	        d.x += event.dx;
+	        d.y += event.dy;
 	        view.tick(); // this is the key to make it work together with updating both px,py,x,y on d !
 	    }
 
-	    function dragend(d, i) {
+	    function dragend(event, d) {
 	        d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
 	        view.tick();
 	        view.model.saved = false;
@@ -619,26 +628,26 @@ PuroView.prototype.updateView = function() {
 
 	    //this.nodes.enter()
 	    var nodesEnter = this.nodes.enter().append("g")
-	        .on("click", function(d){
-		        d3.event.stopPropagation();
+	        .on("click", function(event, d){
+		        event.stopPropagation();
 	        	puroControl.canvasMouseDown(d3.mouse(this), d);
-	        	if(PuroAppSettings.modelingStyleBoxEnabled) d3.select("#nodeProps").style("left", (d3.event.clientX+30)+"px").style("top", (d3.event.clientY+30)+"px");
+	        	if(PuroAppSettings.modelingStyleBoxEnabled) d3.select("#nodeProps").style("left", (event.clientX+30)+"px").style("top", (event.clientY+30)+"px");
 	        	if(PuroAppSettings.mappingBoxEnabled)
 	        		d3.select("#nodeMappings")
-	        		.style("left", (d3.event.clientX+30)+"px")
-	        		.style("top", (d3.event.clientY+180)+"px")
+	        		.style("left", (event.clientX+30)+"px")
+	        		.style("top", (event.clientY+180)+"px")
 	        		.style("height", (d.mappings.length*16+30)+"px");
 	        	    d3.select("#mappingInfoWindow")
-	        		.style("left", (d3.event.clientX+290)+"px")
-	        		.style("top", (d3.event.clientY+180)+"px");
+	        		.style("left", (event.clientX+290)+"px")
+	        		.style("top", (event.clientY+180)+"px");
 
 	        	})
-	        .on('dblclick', function(d){
+	        .on('dblclick', function(event, d){
 			     puroControl.nodeDblClick(d);
 			      var text = d3.select(this).select("text")[0][0];
     			  text.selectSubString(0,0);
     			})
-			.on('mouseover', function(d) {
+			.on('mouseover', function(event, d) {
 				if (!PuroAppSettings.modelingStyleBoxEnabled) {
                     if (!view.creationLink || !view.creationLink.dragging) view.showCreationLink(d);
                     view.showDelButton(d, this);
@@ -679,7 +688,7 @@ PuroView.prototype.updateView = function() {
 		    .classed('hasError', function(d) {return (d.errors.hasError());})
 		    .append("title").text(function(d) {return d.errors.getMessage();});
 		 this.linktext.selectAll("title").remove();
-		 this.edges.style("stroke", function(d) {return (d.errors.hasError())?"#f00":"#ccc";});
+		 this.edges.style("stroke", function(d) {return (d.errors.hasError())?"#f00":lineColor;});
 		 this.linktext.append("title").text(function(d) {return d.errors.getMessage();});
 		this.nodes.exit().remove();
 
@@ -690,6 +699,10 @@ PuroView.prototype.updateView = function() {
     d3.select("#spanModified").text(this.model.lastModified);
 
     if(this.layoutRunning) this.layout.start();
+
+	this.edges = this.edgesGroup.selectAll('line').data(this.model.links, function(d) {return d.id;});
+	this.linktext = this.linkTextGroup.selectAll('g.linklabelholder').data(this.model.links, function(d) {return d.id;});
+	this.nodes = this.nodesGroup.selectAll('g').data(this.model.nodes, function(d) {return d.id;});
     this.tick();
 
     if(PuroAppSettings.vocabVisualizationEnabled) this.drawVocabPaths();
@@ -717,10 +730,10 @@ PuroView.prototype.updateNodeModelingProps = function(puroControl) {
 				.attr("type", "radio")
 				.attr("name", "mappingChoice")
 				.attr("value", function(d) {return d.getLabel();})
-				.on("click", function(d) {puroControl.mappingChanged(d, d3.select(this).node().checked);});
+				.on("click", function(event, d) {puroControl.mappingChanged(d, d3.select(this).node().checked);});
 			choicesDivs.append("span").text(function(d) {return d.getLabel();})
-				.on("mouseover", function(d) {puroControl.showMappingInfo(d);})
-				.on("mouseleave", function(d) {puroControl.hideMappingInfo();});
+				.on("mouseover", function(event, d) {puroControl.showMappingInfo(d);})
+				.on("mouseleave", function(event, d) {puroControl.hideMappingInfo();});
 			this.mappingChoices.exit().remove();
 
 			this.mappingChoices.selectAll("input").property("checked", function(d) {return d.selected;});
@@ -737,7 +750,7 @@ PuroView.prototype.updateVocabList = function(puroControl) {
     var vocabPees = this.vocabs.enter().append("tr").classed(".vocabBox",true);
     vocabPees.append("td").append("input")
     	.attr("type", "checkbox")
-    	.on("mouseup", function(d) {
+    	.on("mouseup", function(event, d) {
     			//view.layout.stop();
     			//view.layoutRunning = false;
     			puroControl.vocabChange(d, !d3.select(this).node().checked);
