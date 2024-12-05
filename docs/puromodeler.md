@@ -2,7 +2,7 @@
 
 PURO Modeler is a graphical authoring tool for PURO models.
 
-You can access it at [protegeserver.cz/purom5](http://protegeserver.cz/purom5).
+You can access it at [puromodeler.vse.cz](https://puromodeler.vse.cz).
 
 ## Authors
 
