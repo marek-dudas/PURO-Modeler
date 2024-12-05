@@ -6,7 +6,7 @@ You can access it at [puromodeler.vse.cz](https://puromodeler.vse.cz).
 
 ## Authors
 
-* Marek Dudáš
+* [Marek Dudáš](https://github.com/marek-dudas)
 * [Vojtěch Svátek](https://nb.vse.cz/~svatek/)
 
 ## Acknowledgments
