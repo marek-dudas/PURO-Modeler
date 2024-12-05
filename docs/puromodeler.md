@@ -7,7 +7,7 @@ You can access it at [puromodeler.vse.cz](https://puromodeler.vse.cz).
 ## Authors
 
 * Marek Dudáš
-* [Vojtěch Svátek](https://nb.vse.cz/~svatek/topics.htm)
+* [Vojtěch Svátek](https://nb.vse.cz/~svatek/)
 
 ## Acknowledgments
 
